@@ -5,3 +5,5 @@
 /api/__pycache__
 /api/migrations/__pycache__
 /wildforge/__pycache__
+.venv
+venv
