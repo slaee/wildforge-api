@@ -30,9 +30,9 @@ class ClassesController(GenericViewSet, ListModelMixin, RetrieveModelMixin):
     def createClass(self, request):
         data = request.data
         newClass = Class()
-        newClass.setName(data['name'])
-        newClass.setSections(data['sections'])
-        newClass.setSchedule(data['schedule'])
+        newClass.name = data['name']
+        newClass.sections = data['sections']
+        newClass.schedule = data['schedule']
         newClass.save()
         return Response(ClassesSerializer(newClass).data)
     
@@ -42,9 +42,9 @@ class ClassesController(GenericViewSet, ListModelMixin, RetrieveModelMixin):
         instance = self.get_queryset().filter(id=id).first()
         if instance is None:
             return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
-        instance.setName(data['name'])
-        instance.setSections(data['sections'])
-        instance.setSchedule(data['schedule'])
+        instance.name = data['name']
+        instance.sections = data['sections']
+        instance.schedule = data['schedule']
         instance.save()
         return Response(ClassesSerializer(instance).data)
     

@@ -5,10 +5,10 @@ urlpatterns = [
     path('classes/', ClassesController.as_view({
         'post': 'createClass',
         'get': 'getAllClasses',
-    }), name='create-class'),
+    }), name='POST | GET classes'),
     path('classes/<int:id>', ClassesController.as_view({
         'get': 'getClassById',
         'put': 'updateClass',
         'delete': 'deleteClass'
-    }), name='get-class-by-id'),
+    }), name='GET | PUT | DELETE class'),
 ]
