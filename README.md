@@ -30,5 +30,10 @@ check if wildforge-db is running
 $ python3 backend/manage.py makemigrations && python3 backend/manage.py migrate && python3 backend/manage.py runserver 0.0.0.0:8000
 ```
 
+#### Running Test
+```bash
+$ python3 backend/manage.py test
+```
+
 ### Swagger Endpoint
 http://0.0.0.0:8000/swagger/
