@@ -16,7 +16,12 @@ To deactivate virtual environment
 $ deactivate
 ```
 
-#### Running DB
+#### Running MySQL DB and PhpMyAdmin
+```bash
+$ sudo docker-compose up --build -d
+```
+
+#### Running MySQL only
 ```bash
 $ cd mysql
 $ sudo docker build . -t wildforge-db
