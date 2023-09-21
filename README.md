@@ -2,6 +2,20 @@
 
 ## Running Dev
 
+#### Setup Python Virtual Environment
+```bash
+$ python3 -m venv venv
+$ source venv/bin/activate
+
+# install the requirements
+$ pip3 install -r requirements.txt
+```
+
+To deactivate virtual environment
+```bash
+$ deactivate
+```
+
 #### Running DB
 ```bash
 $ cd mysql
