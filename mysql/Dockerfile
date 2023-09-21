@@ -1,7 +1,7 @@
 FROM mysql:latest
 
 # Set the root password for MySQL
-ENV MYSQL_ROOT_PASSWORD your_root_password
+ENV MYSQL_ROOT_PASSWORD 1234
 ENV MYSQL_ROOT_HOST='%'
 
 # Copy custom SQL scripts to be executed during initialization
