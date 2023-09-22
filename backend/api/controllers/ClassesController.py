@@ -1,57 +1,36 @@
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.viewsets import ModelViewSet
 
 from api.models import Class
 from api.serializers import ClassesSerializer
 
-class ClassesController(GenericViewSet, ListModelMixin, RetrieveModelMixin):
+class ClassesController(ModelViewSet):
     queryset = Class.objects.all()
     serializer_class = ClassesSerializer
 
-    @action(methods=['GET'], detail=False)
-    def getAllClasses(self, request):
-        instance = self.get_queryset()
-        data = []
-        for classes in instance:
-            data.append(ClassesSerializer(classes).data)
-        return Response(data)
+    @swagger_auto_schema(operation_description="GET /classes")
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(operation_description="POST /classes")
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(operation_description="GET /classes/{id}")
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
     
-    @action(methods=['GET'], detail=True)
-    def getClassById(self, request, id):
-        instance = self.get_queryset().filter(id=id).first()
-        if instance is None:
-            return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(ClassesSerializer(instance).data)
+    @swagger_auto_schema(operation_description="PUT /classes/{id}")
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
     
-    @action(methods=['POST'], detail=False)
-    def createClass(self, request):
-        data = request.data
-        newClass = Class()
-        newClass.name = data['name']
-        newClass.sections = data['sections']
-        newClass.schedule = data['schedule']
-        newClass.save()
-        return Response(ClassesSerializer(newClass).data)
+    @swagger_auto_schema(operation_description="PATCH /classes/{id}")
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
     
-    @action(methods=['PUT'], detail=True)
-    def updateClass(self, request, id):
-        data = request.data
-        instance = self.get_queryset().filter(id=id).first()
-        if instance is None:
-            return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
-        instance.name = data['name']
-        instance.sections = data['sections']
-        instance.schedule = data['schedule']
-        instance.save()
-        return Response(ClassesSerializer(instance).data)
-    
-    @action(methods=['DELETE'], detail=True)
-    def deleteClass(self, request, id):
-        instance = self.get_queryset().filter(id=id).first()
-        if instance is None:
-            return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
-        instance.delete()
-        return Response({"success": "Class deleted"})
+    @swagger_auto_schema(operation_description="DELETE /classes/{id}")
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)

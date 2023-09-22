@@ -1,14 +1,22 @@
-from django.urls import path
-from .controllers import ClassesController
+from django.urls import path, include
+from rest_framework import routers
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
-urlpatterns = [
-    path('classes/', ClassesController.as_view({
-        'post': 'createClass',
-        'get': 'getAllClasses',
-    }), name='POST | GET classes'),
-    path('classes/<int:id>', ClassesController.as_view({
-        'get': 'getClassById',
-        'put': 'updateClass',
-        'delete': 'deleteClass'
-    }), name='GET | PUT | DELETE class'),
+from .controllers import *
+
+router = routers.DefaultRouter()
+router.register(r'users', UsersController)
+router.register(r'classes', ClassesController)
+urlpatterns = router.urls
+
+urlpatterns += [
+    path('tokens/', include([
+        path('acquire/', TokensController.as_view(), name='acquire_token_pair'),
+        path('refresh/', TokenRefreshView.as_view(), name='refresh_token'),
+        path('verify/', TokenVerifyView.as_view(), name='verify_token'),
+    ])),
 ]
