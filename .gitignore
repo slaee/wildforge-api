@@ -1,9 +1,4 @@
-/django_env
-
 # ignore __pycache__ files
-**/__pycache__
-/api/__pycache__
-/api/migrations/__pycache__
-/wildforge/__pycache__
-.venv
+__pycache__
 venv
+py_client
