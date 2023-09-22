@@ -1,6 +1,4 @@
-/django_env
-
 # ignore __pycache__ files
 __pycache__
-.venv
 venv
+py_client
