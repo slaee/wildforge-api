@@ -6,8 +6,9 @@ class Class(models.Model):
     name = models.CharField(max_length=100)
     sections = models.CharField(max_length=100)
     schedule = models.CharField(max_length=100)
-    date_created = models.DateTimeField(auto_now=True)
-    date_updated = models.DateTimeField(auto_now=True)
-    class_code = models.CharField(max_length=100) # class code is generated when class is created
+    date_created = models.DateTimeField(auto_now_add=True, unique=True)
+    date_updated = models.DateTimeField(auto_now=True, unique=True)
+    class_code = models.CharField(max_length=100, unique=True) # class code is auto-generated when class is created
 
     REQUIRED_FIELDS = ['name', 'sections', 'schedule']
+    
