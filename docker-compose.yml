@@ -1,3 +1,7 @@
+# This docker compose file is used to run the backend project only.
+# The actual docker compose will cover the whole project (backend + frontend + database)
+# in github.com/slaee/wildforge-app repository
+
 version: "3.8"
 services:
   mysql:
