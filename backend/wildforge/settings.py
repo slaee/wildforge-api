@@ -12,10 +12,12 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+API_REPO_DIR = BASE_DIR.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -133,11 +135,14 @@ WSGI_APPLICATION = 'wildforge.wsgi.application'
 # DB_HOST = os.environ.get('DB_HOST')
 # DB_PORT = os.environ.get('DB_PORT')
 
-DB_NAME = "wildforge_db"
-DB_USER =  "root"
-DB_PASSWORD = "1234"
-DB_HOST = "0.0.0.0"
-DB_PORT = "3306"
+# use environment variables from /backend/env/backend.env
+load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
+
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
 
 DATABASES = {
     'default': {

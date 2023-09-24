@@ -8,3 +8,4 @@ pymysql
 mysqlclient==1.4.6
 cryptography
 drf_yasg
+python-dotenv
