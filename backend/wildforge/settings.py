@@ -133,7 +133,7 @@ WSGI_APPLICATION = 'wildforge.wsgi.application'
 # DB_HOST = os.environ.get('DB_HOST')
 # DB_PORT = os.environ.get('DB_PORT')
 
-DB_NAME = "TestDB"
+DB_NAME = "wildforge_db"
 DB_USER =  "root"
 DB_PASSWORD = "1234"
 DB_HOST = "0.0.0.0"
