@@ -1,13 +1,17 @@
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.viewsets import ModelViewSet
 
 from api.models import Class
 from api.serializers import ClassesSerializer
 
-class ClassesController(ModelViewSet):
+class ClassesController(viewsets.GenericViewSet,
+                      mixins.ListModelMixin, 
+                      mixins.CreateModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin):
     queryset = Class.objects.all()
     serializer_class = ClassesSerializer
 
