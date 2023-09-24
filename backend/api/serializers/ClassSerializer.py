@@ -1,5 +1,6 @@
 import random
 import string
+from django.db import transaction
 from rest_framework import serializers
 
 from api.models import Class
@@ -16,6 +17,7 @@ class ClassesSerializer(serializers.ModelSerializer):
             'class_code': 'Class Code'
         }
 
+    @transaction.atomic
     def create(self, validated_data):
         while True: # Keep generating class_code until a unique one is generated
             class_code_length = 8
@@ -24,7 +26,11 @@ class ClassesSerializer(serializers.ModelSerializer):
 
             # Check if the generated class_code already exists in the database
             if not Class.objects.filter(class_code=class_code).exists():
-                validated_data['class_code'] = class_code
-                instance = self.Meta.model(**validated_data)
-                instance.save()
-                return instance
+                teacher = validated_data['teacherId']
+                if teacher.is_staff:
+                    validated_data['class_code'] = class_code
+                    instance = self.Meta.model(**validated_data)
+                    instance.save()
+                    return instance
+                else:
+                    raise serializers.ValidationError("User assigned is not a teacher.")
