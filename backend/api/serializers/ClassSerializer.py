@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from api.models import Class
 
-class ClassesSerializer(serializers.ModelSerializer):
+class ClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = Class
         fields = ['id', 'teacherId', 'name', 'sections', 'schedule', 'class_code']
