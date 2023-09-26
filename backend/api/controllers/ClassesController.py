@@ -4,7 +4,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 
 from api.models import Class
-from api.serializers import ClassesSerializer
+from api.serializers import ClassSerializer
 
 class ClassesController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -13,7 +13,7 @@ class ClassesController(viewsets.GenericViewSet,
                       mixins.UpdateModelMixin,
                       mixins.DestroyModelMixin):
     queryset = Class.objects.all()
-    serializer_class = ClassesSerializer
+    serializer_class = ClassSerializer
 
     @swagger_auto_schema(operation_description="GET /classes")
     def list(self, request, *args, **kwargs):
