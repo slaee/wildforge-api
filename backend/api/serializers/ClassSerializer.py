@@ -8,29 +8,28 @@ from api.models import Class
 class ClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = Class
-        fields = ['id', 'teacherId', 'name', 'sections', 'schedule', 'class_code']
+        fields = ['id', 'name', 'sections', 'schedule', 'class_code']
         labels = {
             'name': 'Class Name',
-            'teacherId': 'Teacher',
             'sections': 'Number of Sections',
             'schedule': 'Schedule',
             'class_code': 'Class Code'
         }
 
-    @transaction.atomic
+        # make class_code read-only and update-only
+        extra_kwargs = {
+            'class_code': {'read_only': True, 'required': False}
+        }
+
     def create(self, validated_data):
+        class_code_length = 8
+        characters = string.ascii_letters + string.digits  # Alphanumeric characters
         while True: # Keep generating class_code until a unique one is generated
-            class_code_length = 8
-            characters = string.ascii_letters + string.digits  # Alphanumeric characters
             class_code = ''.join(random.choice(characters) for _ in range(class_code_length))
 
             # Check if the generated class_code already exists in the database
             if not Class.objects.filter(class_code=class_code).exists():
-                teacher = validated_data['teacherId']
-                if teacher.is_staff:
-                    validated_data['class_code'] = class_code
-                    instance = self.Meta.model(**validated_data)
-                    instance.save()
-                    return instance
-                else:
-                    raise serializers.ValidationError("User assigned is not a teacher.")
+                instance = self.Meta.model(**validated_data)
+                instance.class_code = class_code
+                instance.save()
+                return instance
