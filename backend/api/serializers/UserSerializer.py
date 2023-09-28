@@ -5,15 +5,18 @@ from api.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'is_staff']
         labels = {
             'first_name': 'First Name',
             'last_name': 'Last Name',
             'email': 'Email',
-            'password': 'Password'
+            'password': 'Password',
+            'is_staff': 'Is Staff'
         }
 
+        # set default values
         extra_kwargs = {
+            'is_staff': {'default': False},
             'password': {'write_only': True}
         }
 
