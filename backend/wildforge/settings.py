@@ -105,6 +105,17 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',                     # CORS
 ]
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'LOGIN_URL': 'http://0.0.0.0:8000/tokens/acquire/',
+}
+
 ROOT_URLCONF = 'wildforge.urls'
 
 TEMPLATES = [
