@@ -1,14 +1,14 @@
 import random
 import string
-from django.db import transaction
 from rest_framework import serializers
+from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 
 from api.models import Class
 
 class ClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = Class
-        fields = ['id', 'name', 'sections', 'schedule', 'class_code']
+        fields = ['id', 'name', 'sections', 'schedule', 'class_code', 'class_member']
         labels = {
             'name': 'Class Name',
             'sections': 'Number of Sections',
@@ -20,6 +20,13 @@ class ClassSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'class_code': {'read_only': True, 'required': False}
         }
+    
+    class_member = NestedHyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='class-class-members-list',
+        parent_lookup_kwargs={'class_pk': 'class_id'}
+    )
 
     def create(self, validated_data):
         class_code_length = 8
@@ -33,3 +40,9 @@ class ClassSerializer(serializers.ModelSerializer):
                 instance.class_code = class_code
                 instance.save()
                 return instance
+            
+class JoinClassSerializer(serializers.Serializer):
+    class_code = serializers.CharField(max_length=8)
+
+    class Meta:
+        ref_name = 'JoinClassInput'
