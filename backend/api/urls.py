@@ -10,7 +10,12 @@ from .controllers import *
 router = routers.DefaultRouter()
 router.register(r'users', UsersController)
 router.register(r'classes', ClassesController)
+
+classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='class')
+classes_router.register(r'members', ClassMembersController, basename='class-members')
+
 urlpatterns = router.urls
+urlpatterns += classes_router.urls
 
 urlpatterns += [
     path('tokens/', include([
