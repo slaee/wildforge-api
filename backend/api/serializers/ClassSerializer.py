@@ -8,10 +8,9 @@ from api.models import Class
 class ClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = Class
-        fields = ['id', 'teacherId', 'name', 'sections', 'schedule', 'class_code']
+        fields = ['id', 'name', 'sections', 'schedule', 'class_code']
         labels = {
             'name': 'Class Name',
-            'teacherId': 'Teacher',
             'sections': 'Number of Sections',
             'schedule': 'Schedule',
             'class_code': 'Class Code'
@@ -26,11 +25,9 @@ class ClassSerializer(serializers.ModelSerializer):
 
             # Check if the generated class_code already exists in the database
             if not Class.objects.filter(class_code=class_code).exists():
-                teacher = validated_data['teacherId']
-                if teacher.is_staff:
-                    validated_data['class_code'] = class_code
-                    instance = self.Meta.model(**validated_data)
-                    instance.save()
-                    return instance
-                else:
-                    raise serializers.ValidationError("User assigned is not a teacher.")
+                validated_data['class_code'] = class_code
+                instance = self.Meta.model(**validated_data)
+                instance.save()
+                return instance
+
+                

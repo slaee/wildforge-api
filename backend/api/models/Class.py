@@ -2,7 +2,6 @@ from django.db import models
 from .User import User
 
 class Class(models.Model):
-    teacherId = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     sections = models.CharField(max_length=100)
     schedule = models.CharField(max_length=100)
