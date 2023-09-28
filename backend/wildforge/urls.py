@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.contrib import admin
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view as swagger_get_schema_view
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import permissions
 
 schema_view = swagger_get_schema_view(
@@ -28,6 +29,7 @@ schema_view = swagger_get_schema_view(
         description="API documentation of WildForget API",
     ),
     public=True,
+    authentication_classes=(JWTAuthentication,),
     permission_classes=(permissions.AllowAny,),
 )
 
