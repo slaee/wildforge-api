@@ -1,4 +1,5 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, permissions
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_yasg.utils import swagger_auto_schema
 
 from api.models import Class
@@ -12,6 +13,14 @@ class ClassesController(viewsets.GenericViewSet,
                       mixins.DestroyModelMixin):
     queryset = Class.objects.all()
     serializer_class = ClassSerializer
+    authentication_classes = [JWTAuthentication]
+
+    def get_permissions(self):
+        if self.action in ['create','destroy', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        elif self.action in ['retrieve', 'list']:
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
 
     @swagger_auto_schema(operation_description="GET /classes")
     def list(self, request, *args, **kwargs):

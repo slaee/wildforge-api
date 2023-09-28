@@ -1,7 +1,5 @@
-from rest_framework import viewsets, mixins
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, mixins, permissions
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.generics import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 
 from api.models import User
@@ -15,7 +13,13 @@ class UsersController(viewsets.GenericViewSet,
     queryset = User.objects.all()
     serializer_class = UserSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
 
     @swagger_auto_schema(operation_description="POST /users")
     def create(self, request, *args, **kwargs):
@@ -23,24 +27,16 @@ class UsersController(viewsets.GenericViewSet,
     
     @swagger_auto_schema(operation_description="GET /users/{id}")
     def retrieve(self, request, *args, **kwargs):
-        user = get_object_or_404(User, pk=self.kwargs.get('pk'))
-        self.check_object_permissions(request, user)
         return super().retrieve(request, *args, **kwargs)
 
     @swagger_auto_schema(operation_description="PUT /users/{id}")
     def update(self, request, *args, **kwargs):
-        user = get_object_or_404(User, pk=self.kwargs.get('pk'))
-        self.check_object_permissions(request, user)
         return super().update(request, *args, **kwargs)
     
     @swagger_auto_schema(operation_description="PATCH /users/{id}")
     def partial_update(self, request, *args, **kwargs):
-        user = get_object_or_404(User, pk=self.kwargs.get('pk'))
-        self.check_object_permissions(request, user)
         return super().partial_update(request, *args, **kwargs)
     
     @swagger_auto_schema(operation_description="DELETE /users/{id}")
     def destroy(self, request, *args, **kwargs):
-        user = get_object_or_404(User, pk=self.kwargs.get('pk'))
-        self.check_object_permissions(request, user)
         return super().destroy(request, *args, **kwargs)
