@@ -5,25 +5,18 @@ from api.models import ClassMember, User, Class
 class ClassMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassMember
-        fields = ['id', 'user_id','class_id', 'is_teacher']
+        fields = ['id', 'user_id','class_id', 'is_teacher', 'status']
         labels = {
             'user_id': 'User ID',
             'class_id': 'Class ID',
-            'is_teacher': 'User is a teacher?'
+            'is_teacher': 'User is a teacher?',
+            'status': 'Status'
         }
 
-    def create(self, validated_data):
-        user_id = validated_data.get('user_id')
-        class_id = validated_data.get('class_id')
-
-        # Check if user_id and class_id exist in the database
-        if not User.objects.filter(id=user_id).exists():
-            raise serializers.ValidationError("User ID does not exist.")
-
-        if not Class.objects.filter(id=class_id).exists():
-            raise serializers.ValidationError("Class ID does not exist.")
-
-        # Create the instance if both IDs exist
-        instance = self.Meta.model(**validated_data)
-        instance.save()
-        return instance
+        # disable input data body for PUT and PATCH requests
+        extra_kwargs = {
+            'user_id': {'read_only': True, 'required': False},
+            'class_id': {'read_only': True, 'required': False},
+            'is_teacher': {'read_only': True, 'required': False},
+            'status': {'read_only': True, 'required': False}
+        }
