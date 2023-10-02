@@ -23,4 +23,6 @@ urlpatterns += [
         path('refresh/', TokenRefreshView.as_view(), name='refresh_token'),
         path('verify/', TokenVerifyView.as_view(), name='verify_token'),
     ])),
+    # paths for classes
+    path('classes/', ClassesController.as_view({'get': 'list', 'post': 'create'}), name='classes'),
 ]
