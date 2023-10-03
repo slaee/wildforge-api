@@ -17,27 +17,51 @@ class ClassesTest(TestCase):
         )
         
         # Create a regular user
-        self.user = User.objects.create(
-            email='user@example.com',
+        self.teacher = User.objects.create(
+            email='teacher@example.com',
             password='userpassword',
-            first_name='Regular',
+            first_name='Teacher',
             last_name='User',
-            is_superuser=False
+            is_staff=True
         )
 
-        # Create JWT tokens for authentication
-        self.superuser_refresh_token = RefreshToken.for_user(self.superuser)
-        self.superuser_access_token = str(self.superuser_refresh_token.access_token)
+        self.student = User.objects.create(
+            email='student@example.com',
+            password='userpassword',
+            first_name='Student',
+            last_name='User'
+        )
 
-        self.user_refresh_token = RefreshToken.for_user(self.user)
-        self.user_access_token = str(self.user_refresh_token.access_token)
+
+        # Create JWT tokens for authentication
+
+        superuser_refresh = RefreshToken.for_user(self.superuser)
+        self.superuser_auth = {
+            'refresh': superuser_refresh,
+            'access': str(superuser_refresh.access_token)
+        }
+
+        teacher_refresh = RefreshToken.for_user(self.teacher)
+        self.teacher_auth = {
+            'refresh': teacher_refresh,
+            'access': str(teacher_refresh.access_token)
+        }
+
+        student_refresh = RefreshToken.for_user(self.student)
+        self.student_auth = {
+            'refresh': student_refresh,
+            'access': str(student_refresh.access_token)
+        }
 
         # Initialize the API client with authentication headers
         self.client_superuser = APIClient()
-        self.client_superuser.credentials(HTTP_AUTHORIZATION=f'Bearer {self.superuser_access_token}')
+        self.client_superuser.credentials(HTTP_AUTHORIZATION=f'Bearer {self.superuser_auth.get("access")}')
 
-        self.client_user = APIClient()
-        self.client_user.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
+        self.client_teacher_user = APIClient()
+        self.client_teacher_user.credentials(HTTP_AUTHORIZATION=f'Bearer {self.teacher_auth.get("access")}')
+
+        self.client_student_user = APIClient()
+        self.client_student_user.credentials(HTTP_AUTHORIZATION=f'Bearer {self.student_auth.get("access")}')
 
     def test_create_class_as_teacher(self):
         url = reverse('classes')
@@ -48,7 +72,7 @@ class ClassesTest(TestCase):
             'class_code': '12345678'
         }
 
-        response = self.client_superuser.post(url, data, format='json')
+        response = self.client_teacher_user.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     # def test_retrieve_class(self):
