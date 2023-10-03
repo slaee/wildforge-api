@@ -26,8 +26,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Start containers
-      run: 
-        docker-compose -f "docker-compose.yml" up -d --build
+      run: docker-compose -f "docker-compose.yml" up -d --build mysql
     - name: Run Tests
       run: |
         python ./backend/manage.py test api.tests
+    - name: Stop containers
+      run: docker-compose -f "docker-compose.yml" down
