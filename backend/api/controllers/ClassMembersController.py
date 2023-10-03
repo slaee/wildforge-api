@@ -23,6 +23,10 @@ class ClassMembersController(viewsets.GenericViewSet,
 
     @swagger_auto_schema(operation_description="GET /classes/{class_pk}/members")
     def list(self, request, *args, **kwargs):
+        class_member = ClassMember.objects.filter(class_id=kwargs['class_pk'], user_id=request.user, status='accepted')
+        if not class_member.exists():
+            return Response({'error': 'You are not a member of this class.'}, status=403)
+        
         class_members = ClassMember.objects.filter(class_id=kwargs['class_pk'])
         serializer = self.get_serializer(class_members, many=True)
         return Response(serializer.data)
