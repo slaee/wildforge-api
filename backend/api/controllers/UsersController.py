@@ -35,9 +35,10 @@ class UsersController(viewsets.GenericViewSet,
         operation_description="POST /users",
         request_body=UserSerializer,
         responses={
-            status.HTTP_200_OK: openapi.Response('Created', UserSerializer),
+            status.HTTP_201_CREATED: openapi.Response('Created', UserSerializer),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
             status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
     def create(self, request, *args, **kwargs):
@@ -51,6 +52,7 @@ class UsersController(viewsets.GenericViewSet,
             status.HTTP_200_OK: openapi.Response('OK', UserSerializer),
             status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
             status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
     def retrieve(self, request, *args, **kwargs):
@@ -65,6 +67,7 @@ class UsersController(viewsets.GenericViewSet,
             status.HTTP_200_OK: openapi.Response('OK', UserSerializer),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
             status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
     def update(self, request, *args, **kwargs):
@@ -79,6 +82,7 @@ class UsersController(viewsets.GenericViewSet,
             status.HTTP_200_OK: openapi.Response('OK', UserSerializer),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
             status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
     def partial_update(self, request, *args, **kwargs):
@@ -91,6 +95,7 @@ class UsersController(viewsets.GenericViewSet,
         responses={
             status.HTTP_204_NO_CONTENT: openapi.Response('No Content'),
             status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
     def destroy(self, request, *args, **kwargs):
