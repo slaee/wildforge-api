@@ -29,6 +29,7 @@ jobs:
       run: docker-compose -f "docker-compose.yml" up -d --build mysql
     - name: Run Tests
       run: |
+        sleep 10
         python ./backend/manage.py test api.tests
     - name: Stop containers
       run: docker-compose -f "docker-compose.yml" down
