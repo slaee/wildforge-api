@@ -35,7 +35,7 @@ class ClassesController(viewsets.GenericViewSet,
         class_member = ClassMember.objects.create(
             user_id=request.user,
             class_id=new_class,
-            is_teacher=True,
+            role='t',
             status='accepted'
         )
         class_member.save()
@@ -70,7 +70,7 @@ class ClassesController(viewsets.GenericViewSet,
                     'first_name': user.get('first_name'),
                     'last_name': user.get('last_name'),
                     'email': user.get('email'),
-                    'is_teacher': class_member.is_teacher,
+                    'role': class_member.role,
                     'status': class_member.status
                 }
                 
@@ -110,8 +110,7 @@ class ClassesController(viewsets.GenericViewSet,
             class_to_join = Class.objects.get(class_code=class_code)
             class_member = ClassMember.objects.create(
                 user_id=request.user,
-                class_id=class_to_join,
-                is_teacher=False
+                class_id=class_to_join
             )
             class_member.save()
             return Response({'details': 'Successfully joined class'})
