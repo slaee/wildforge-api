@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import (
 from .controllers import *
 
 router = routers.DefaultRouter()
-router.register(r'users', UsersController)
+router.register(r'users', UsersController, basename='users')
 router.register(r'classes', ClassesController)
 
 classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='class')
