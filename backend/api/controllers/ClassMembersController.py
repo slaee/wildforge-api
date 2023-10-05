@@ -5,6 +5,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
 
+from api.models import User
 from api.models import ClassMember
 from api.serializers import ClassMemberSerializer
 
@@ -41,13 +42,20 @@ class ClassMembersController(viewsets.GenericViewSet,
         }
     )
     def list(self, request, *args, **kwargs):
-        class_member = ClassMember.objects.filter(class_id=kwargs['class_pk'], user_id=request.user, status='accepted')
-        if not class_member.exists():
+        current_class_member = ClassMember.objects.filter(class_id=kwargs['class_pk'], user_id=request.user, status='accepted')
+        if not current_class_member.exists():
             return Response({'error': 'You are not a member of this class.'}, status=403)
         
-        class_members = ClassMember.objects.filter(class_id=kwargs['class_pk'])
-        serializer = self.get_serializer(class_members, many=True)
-        return Response(serializer.data)
+        class_members = ClassMember.objects.filter(class_id=kwargs['class_pk'], status='accepted').select_related('user_id').all()
+        serializer = ClassMemberSerializer(class_members, many=True).data
+
+        for class_member in serializer:
+            user = User.objects.get(id=class_member['user_id'])
+            class_member['first_name'] = user.first_name
+            class_member['last_name'] = user.last_name
+        
+
+        return Response(serializer, status=status.HTTP_200_OK)
     
 
     @swagger_auto_schema(

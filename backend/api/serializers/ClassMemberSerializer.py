@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from api.models import ClassMember, User, Class
+from .UserSerializer import UserSerializer
 
 class ClassMemberSerializer(serializers.ModelSerializer):
     class Meta:
