@@ -64,7 +64,7 @@ class ClassesTest(TestCase):
         self.client_student_user.credentials(HTTP_AUTHORIZATION=f'Bearer {self.student_auth.get("access")}')
 
     def test_create_class_as_teacher(self):
-        url = reverse('class-list')
+        url = reverse('classes')
         data = {
             'name': 'Math 101',
             'sections': 'A',
@@ -89,15 +89,15 @@ class ClassesTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_classes_as_superuser(self):
-        response = self.client_superuser.get(reverse('class-list'))
+        response = self.client_superuser.get(reverse('classes'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_classes_as_teacher(self):
-        response = self.client_teacher_user.get(reverse('class-list'))
+        response = self.client_teacher_user.get(reverse('classes'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_classes_as_user(self):
-        response = self.client_student_user.get(reverse('class-list'))
+        response = self.client_student_user.get(reverse('classes'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
