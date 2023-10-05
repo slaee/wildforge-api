@@ -1,13 +1,13 @@
-FROM python:3.10
+FROM python:3.11
 
 WORKDIR /app
 
-COPY  ../ /app
+COPY  ./backend /app
 
 COPY requirements.txt /app
 
 # RUN source ./django_env/bin/activate
-RUN pip install -r ../../requirements.txt
+RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
