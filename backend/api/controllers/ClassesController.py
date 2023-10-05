@@ -130,7 +130,14 @@ class ClassesController(viewsets.GenericViewSet,
         if not class_member:
             return Response({'details': 'You are not a member of this class'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        return super().retrieve(request, *args, **kwargs)
+        data = super().retrieve(request, *args, **kwargs)
+
+        # count number of members
+        roles = ['tl', 's']
+        number_of_students = ClassMember.objects.filter(class_id=class_id, role__in=roles, status='accepted').count()
+        data.data['number_of_students'] = number_of_students
+        
+        return data
     
     
     @swagger_auto_schema(
