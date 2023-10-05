@@ -11,9 +11,14 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             'team_id': 'Team ID'
         }
 
+        # disable input data body for PUT and PATCH requests
+        extra_kwargs = {
+            'class_member_id': {'read_only': True, 'required': False},
+            'team_id': {'read_only': True, 'required': False}
+        }
+
     def create(self, validated_data):
         instance = self.Meta.model(**validated_data)
         instance.save()
         return instance
-    
     
