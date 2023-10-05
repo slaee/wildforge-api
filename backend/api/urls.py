@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import (
 
 from .controllers import *
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', UsersController, basename='users')
 router.register(r'classes', ClassesController, basename='class')
 

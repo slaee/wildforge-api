@@ -1,6 +1,7 @@
 from .ClassSerializer import ClassSerializer
 from .UserSerializer import UserSerializer
 from .UserSerializer import SuperUserSerializer
+from .UserSerializer import LoginSerializer
 from .AuthTokenObtainPairSerializer import AuthTokenObtainPairSerializer
 from .ClassAssignedSerializer import ClassAssignedSerializer
 from .ClassMemberSerializer import ClassMemberSerializer
