@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import (
 
 from .controllers import *
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', UsersController)
 router.register(r'classes', ClassesController)
 
@@ -19,10 +19,10 @@ urlpatterns += classes_router.urls
 
 urlpatterns += [
     path('tokens/', include([
-        path('acquire/', TokensController.as_view(), name='acquire_token_pair'),
-        path('refresh/', TokenRefreshView.as_view(), name='refresh_token'),
-        path('verify/', TokenVerifyView.as_view(), name='verify_token'),
+        path('acquire', TokensController.as_view(), name='acquire_token_pair'),
+        path('refresh', TokenRefreshView.as_view(), name='refresh_token'),
+        path('verify', TokenVerifyView.as_view(), name='verify_token'),
     ])),
     # paths for classes
-    path('classes/', ClassesController.as_view({'get': 'list', 'post': 'create'}), name='classes'),
+    #path('classes', ClassesController.as_view({'get': 'list', 'post': 'create'}), name='classes'),
 ]
