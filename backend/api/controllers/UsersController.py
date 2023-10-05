@@ -1,10 +1,13 @@
 from rest_framework import viewsets, mixins, permissions, status
+from rest_framework.decorators import action
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from api.models import User
 from api.serializers import UserSerializer
+from api.serializers import LoginSerializer as Login
 
 class UsersController(viewsets.GenericViewSet,
                       mixins.CreateModelMixin,
@@ -43,7 +46,7 @@ class UsersController(viewsets.GenericViewSet,
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-    
+        
 
     @swagger_auto_schema(
         operation_summary="Retrieves a user",
@@ -57,6 +60,24 @@ class UsersController(viewsets.GenericViewSet,
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+    
+
+    # create a POST /users/login endpoint
+    @swagger_auto_schema(
+        operation_summary="Logs in a user",
+        operation_description="POST /users/login",
+        request_body=Login,
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', UserSerializer),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(methods=['POST'], detail=False)
+    def login(self, request, *args, **kwargs):
+        serializer = Login(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 
     @swagger_auto_schema(
