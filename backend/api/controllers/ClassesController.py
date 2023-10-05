@@ -120,6 +120,16 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def retrieve(self, request, *args, **kwargs):
+        class_id = kwargs['pk']
+        try:
+            Class.objects.get(id=class_id)
+        except Class.DoesNotExist:
+            return Response({'details': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        class_member = ClassMember.objects.filter(user_id=request.user, class_id=class_id)
+        if not class_member:
+            return Response({'details': 'You are not a member of this class'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         return super().retrieve(request, *args, **kwargs)
     
     
