@@ -46,7 +46,6 @@ class UsersController(viewsets.GenericViewSet,
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-        
 
     @swagger_auto_schema(
         operation_summary="Retrieves a user",
@@ -61,7 +60,6 @@ class UsersController(viewsets.GenericViewSet,
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
     
-
     # create a POST /users/login endpoint
     @swagger_auto_schema(
         operation_summary="Logs in a user",
@@ -78,7 +76,6 @@ class UsersController(viewsets.GenericViewSet,
         serializer = Login(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
-
 
     @swagger_auto_schema(
         operation_summary="Updates a user",

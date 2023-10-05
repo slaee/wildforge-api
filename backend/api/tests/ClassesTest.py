@@ -75,82 +75,73 @@ class ClassesTest(TestCase):
         response = self.client_teacher_user.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    # def test_retrieve_class(self):
-    #     # Create a class instance first (you may need to adjust this according to your model)
-    #     new_class = Class.objects.create(
-    #         name='Math 101',
-    #         sections='A',
-    #         schedule='MWF 9:00 AM - 10:00 AM'
-    #     )
+    def test_retrieve_class(self):
+        # Create a class instance first (you may need to adjust this according to your model)
+        new_class = Class.objects.create(
+            name='Math 101',
+            sections='A',
+            schedule='MWF 9:00 AM - 10:00 AM'
+        )
 
-    #     url = reverse('class-detail', args=[new_class.id])
+        url = reverse('class-detail', args=[new_class.id])
 
-    #     response = self.client_superuser.get(url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client_superuser.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # def test_list_classes_as_superuser(self):
-    #     self.user.is_superuser = True
-    #     self.user.save()
-    #     response = self.client.get(reverse('classes'))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_classes_as_superuser(self):
+        response = self.client_superuser.get(reverse('classes'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_list_classes_as_teacher(self):
+        response = self.client_teacher_user.get(reverse('classes'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_list_classes_as_user(self):
+        response = self.client_student_user.get(reverse('classes'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+    def test_update_class(self):
+        new_class = Class.objects.create(
+            name='Math 101',
+            sections='A',
+            schedule='MWF 9:00 AM - 10:00 AM'
+        )
+
+        url = reverse('class-detail', args=[new_class.id])
+        data = {
+            'name': 'Math 101',
+            'sections': 'B',
+            'schedule': 'MWF 9:00 AM - 10:00 AM'
+        }
+
+        response = self.client_teacher_user.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def test_partial_update_class(self):
+        new_class = Class.objects.create(
+            name='Math 101',
+            sections='A',
+            schedule='MWF 9:00 AM - 10:00 AM'
+        )
+
+        url = reverse('class-detail', args=[new_class.id])
+        data = {
+            'sections': 'B'
+        }
+
+        response = self.client_teacher_user.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
     
 
-    # def test_retrieve_class(self):
-    #     class_obj = Class.objects.create(
-    #         name='Math',
-    #         sections='A',
-    #         schedule='MWF 10:00 AM - 11:00 AM',
-    #         class_code='12345678'
-    #     )
-    #     response = self.client.get(reverse('classes', args=[class_obj.id]))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_delete_class(self):
+        new_class = Class.objects.create(
+            name='Math 101',
+            sections='A',
+            schedule='MWF 9:00 AM - 10:00 AM'
+        )
 
-    # def test_update_class(self):
-    #     class_obj = Class.objects.create(
-    #         name='Math',
-    #         sections='A',
-    #         schedule='MWF 10:00 AM - 11:00 AM',
-    #         class_code='12345678'
-    #     )
-    #     data = {
-    #         'name': 'Physics',
-    #         'sections': 'B',
-    #         'schedule': 'TTH 2:00 PM - 3:30 PM',
-    #         'class_code': '87654321'
-    #     }
-    #     response = self.client.put(reverse('classes', args=[class_obj.id]), data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     class_obj.refresh_from_db()
-    #     self.assertEqual(class_obj.name, 'Physics')
-    #     self.assertEqual(class_obj.sections, 'B')
-    #     self.assertEqual(class_obj.schedule, 'TTH 2:00 PM - 3:30 PM')
-    #     self.assertEqual(class_obj.class_code, '12345678')  # class_code should be read-only
+        url = reverse('class-detail', args=[new_class.id])
 
-    # def test_partial_update_class(self):
-    #     class_obj = Class.objects.create(
-    #         name='Math',
-    #         sections='A',
-    #         schedule='MWF 10:00 AM - 11:00 AM',
-    #         class_code='12345678'
-    #     )
-    #     data = {
-    #         'sections': 'B'
-    #     }
-    #     response = self.client.patch(reverse('classes', args=[class_obj.id]), data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     class_obj.refresh_from_db()
-    #     self.assertEqual(class_obj.sections, 'B')
-
-    # def test_delete_class(self):
-    #     class_obj = Class.objects.create(
-    #         name='Math',
-    #         sections='A',
-    #         schedule='MWF 10:00 AM - 11:00 AM',
-    #         class_code='12345678'
-    #     )
-    #     response = self.client.delete(reverse('classes', args=[class_obj.id]))
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    #     self.assertFalse(Class.objects.filter(id=class_obj.id).exists())
-
-    
+        response = self.client_teacher_user.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
