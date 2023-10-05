@@ -46,7 +46,7 @@ class ClassMembersController(viewsets.GenericViewSet,
         if not current_class_member.exists():
             return Response({'error': 'You are not a member of this class.'}, status=403)
         
-        class_members = ClassMember.objects.filter(class_id=kwargs['class_pk'], status='accepted').select_related('user_id').all()
+        class_members = ClassMember.objects.filter(class_id=kwargs['class_pk']).select_related('user_id').all()
         serializer = ClassMemberSerializer(class_members, many=True).data
 
         for class_member in serializer:
