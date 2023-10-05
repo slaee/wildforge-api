@@ -7,11 +7,11 @@ from rest_framework_simplejwt.views import (
 
 from .controllers import *
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', UsersController, basename='users')
-router.register(r'classes', ClassesController)
+router.register(r'classes', ClassesController, basename='class')
 
-classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='class')
+classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='classes')
 classes_router.register(r'members', ClassMembersController, basename='class-members')
 
 urlpatterns = router.urls
