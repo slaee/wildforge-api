@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+import re
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,10 +30,30 @@ SECRET_KEY = 'django-insecure-(pzk9w5d45r1%hw3@ys^$q(+9vt6froa&o#pw04g@y+96ab!3@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0']
+# DB_NAME = os.environ.get('DB_NAME')
+# DB_USER = os.environ.get('DB_USER')
+# DB_PASSWORD = os.environ.get('DB_PASSWORD')
+# DB_HOST = os.environ.get('DB_HOST')
+# DB_PORT = os.environ.get('DB_PORT')
+
+# use environment variables from /backend/env/backend.env
+load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
+
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = '0.0.0.0'
+DB_PORT = os.getenv('DB_PORT')
+
+regex = r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+FRONTEND_HOST = os.getenv('FRONTEND_CONTAINER_HOST')
+
+FRONTEND_HOST = FRONTEND_HOST if re.match(regex, FRONTEND_HOST) else os.getenv('FRONTEND_LOCAL_HOST')
+
+# Set the allowed hosts here to prevent host header attacks
+ALLOWED_HOSTS = ['0.0.0.0', FRONTEND_HOST]
 
 APPEND_SLASH = False
-
 
 # Application definition
 
@@ -142,20 +163,6 @@ WSGI_APPLICATION = 'wildforge.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DB_NAME = os.environ.get('DB_NAME')
-# DB_USER = os.environ.get('DB_USER')
-# DB_PASSWORD = os.environ.get('DB_PASSWORD')
-# DB_HOST = os.environ.get('DB_HOST')
-# DB_PORT = os.environ.get('DB_PORT')
-
-# use environment variables from /backend/env/backend.env
-load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
-
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = '0.0.0.0'
-DB_PORT = os.getenv('DB_PORT')
 
 DATABASES = {
     'default': {
