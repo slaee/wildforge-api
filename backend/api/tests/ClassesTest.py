@@ -76,13 +76,18 @@ class ClassesTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_retrieve_class_success(self):
-        url = reverse('class-detail', args=[self.Class.id])
-        response = self.client_student.get(url)
+        new_class = Class.objects.create(
+            name='Math 101',
+            sections='A',
+            schedule='MWF 9:00 AM - 10:00 AM'
+        )
+        url = reverse('class-detail', args=[new_class.id])
+        response = self.client_student_user.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_class_not_found(self):
-        url = reverse('class-detail', args=[999])  # Non-existent class ID
-        response = self.client_student.get(url)
+        url = reverse('class-detail', args=[999])
+        response = self.client_student_user.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve_class_unauthorized(self):
@@ -94,6 +99,12 @@ class ClassesTest(TestCase):
             last_name='User'
         )
 
+        new_class = Class.objects.create(
+            name='Math 101',
+            sections='A',
+            schedule='MWF 9:00 AM - 10:00 AM'
+        )
+
         unauthorized_refresh = RefreshToken.for_user(unauthorized_user)
         unauthorized_auth = {
             'refresh': str(unauthorized_refresh),
@@ -103,7 +114,7 @@ class ClassesTest(TestCase):
         self.client_unauthorized = APIClient()
         self.client_unauthorized.credentials(HTTP_AUTHORIZATION=f'Bearer {unauthorized_auth["access"]}')
 
-        url = reverse('class-detail', args=[self.Class.id])
+        url = reverse('class-detail', args=[new_class.id])
         response = self.client_unauthorized.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
