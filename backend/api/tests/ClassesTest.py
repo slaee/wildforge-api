@@ -77,10 +77,20 @@ class ClassesTest(TestCase):
 
     def test_retrieve_class_success(self):
         new_class = Class.objects.create(
-            name='Math 101',
-            sections='A',
-            schedule='MWF 9:00 AM - 10:00 AM'
+        name='Math 101',
+        sections='A',
+        schedule='MWF 9:00 AM - 10:00 AM'
         )
+
+        class_member = ClassMember.objects.create(
+            user_id=self.student,
+            class_id=new_class,
+            role='s',  
+            status='accepted'
+        )
+
+        # Ensure that the student user is authenticated
+        self.client_student_user.force_authenticate(user=self.student)
         url = reverse('class-detail', args=[new_class.id])
         response = self.client_student_user.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
