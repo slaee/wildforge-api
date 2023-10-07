@@ -75,18 +75,58 @@ class ClassesTest(TestCase):
         response = self.client_teacher_user.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_retrieve_class(self):
-        # Create a class instance first (you may need to adjust this according to your model)
+    def test_retrieve_class_success(self):
+        new_class = Class.objects.create(
+        name='Math 101',
+        sections='A',
+        schedule='MWF 9:00 AM - 10:00 AM'
+        )
+
+        class_member = ClassMember.objects.create(
+            user_id=self.student,
+            class_id=new_class,
+            role='s',  
+            status='accepted'
+        )
+
+        # Ensure that the student user is authenticated
+        self.client_student_user.force_authenticate(user=self.student)
+        url = reverse('class-detail', args=[new_class.id])
+        response = self.client_student_user.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_retrieve_class_not_found(self):
+        url = reverse('class-detail', args=[999])
+        response = self.client_student_user.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_retrieve_class_unauthorized(self):
+        # Create a new student user (not part of the class)
+        unauthorized_user = User.objects.create(
+            email='unauthorized@example.com',
+            password='userpassword',
+            first_name='Unauthorized',
+            last_name='User'
+        )
+
         new_class = Class.objects.create(
             name='Math 101',
             sections='A',
             schedule='MWF 9:00 AM - 10:00 AM'
         )
 
-        url = reverse('class-detail', args=[new_class.id])
+        unauthorized_refresh = RefreshToken.for_user(unauthorized_user)
+        unauthorized_auth = {
+            'refresh': str(unauthorized_refresh),
+            'access': str(unauthorized_refresh.access_token)
+        }
 
-        response = self.client_superuser.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client_unauthorized = APIClient()
+        self.client_unauthorized.credentials(HTTP_AUTHORIZATION=f'Bearer {unauthorized_auth["access"]}')
+
+        url = reverse('class-detail', args=[new_class.id])
+        response = self.client_unauthorized.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_classes_as_superuser(self):
         response = self.client_superuser.get(reverse('class-list'))
