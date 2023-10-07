@@ -29,24 +29,24 @@ SECRET_KEY = 'django-insecure-(pzk9w5d45r1%hw3@ys^$q(+9vt6froa&o#pw04g@y+96ab!3@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
-
-LOCAL_HOST = os.getenv('LOCAL_HOST')
-
-# use environment variables from /backend/env/backend.env
-# load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
-
 # DB_NAME = os.getenv('DB_NAME')
 # DB_USER = os.getenv('DB_USER')
 # DB_PASSWORD = os.getenv('DB_PASSWORD')
-# DB_HOST = '0.0.0.0'
+# DB_HOST = os.getenv('DB_HOST')
 # DB_PORT = os.getenv('DB_PORT')
 
 # LOCAL_HOST = os.getenv('LOCAL_HOST')
+
+# use environment variables from /backend/env/backend.env
+load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
+
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = '0.0.0.0'
+DB_PORT = os.getenv('DB_PORT')
+
+LOCAL_HOST = os.getenv('LOCAL_HOST')
 
 # Set the allowed hosts here to prevent host header attacks
 ALLOWED_HOSTS = ['0.0.0.0', LOCAL_HOST]
