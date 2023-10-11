@@ -41,3 +41,28 @@ class SuperUserSerializer(serializers.ModelSerializer):
             'is_staff': {'read_only': True, 'required': False},
             'is_superuser': {'read_only': True, 'required': False}
         }
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    password = serializers.CharField(max_length=128, write_only=True)
+
+    def validate(self, data):
+        email = data.get('email', None)
+        password = data.get('password', None)
+
+        if not email:
+            raise serializers.ValidationError('An email address is required to log in.')
+
+        if not password:
+            raise serializers.ValidationError('A password is required to log in.')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('A user with this email and password was not found.')
+
+        if not user.check_password(password):
+            raise serializers.ValidationError('A user with this email and password was not found.')
+
+        serializer_data = UserSerializer(user).data
+        return serializer_data
