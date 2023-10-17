@@ -9,6 +9,7 @@ from api.models import Team
 from api.models import TeamMember
 from api.serializers import TeamSerializer
 from api.serializers import UserSerializer
+from api.serializers import TeamMemberSerializer
 
 class TeamsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -169,3 +170,221 @@ class TeamsController(viewsets.GenericViewSet,
         team_member.save()
         serializer = TeamSerializer(team)
         return Response(serializer.data)
+    
+    "RECRUITMENT/HIRING - RELATED ENDPOINTS"
+
+    @swagger_auto_schema(
+        operation_summary="Start Recruitment",
+        operation_description="POST /teams/{id}/start_recruitment",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['post'])
+    def start_recruitment(self, request, *args, **kwargs):
+        team = self.get_object()
+        team.recruitment_status = 1
+        team.save()
+        serializer = TeamSerializer(team)
+        return Response(serializer.data)
+    
+    @swagger_auto_schema(
+    operation_summary="Post Hiring",
+    operation_description="POST /teams/{id}/post_hiring",
+    responses={
+        status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
+        status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+        status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+        status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+        status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+        status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['post'])
+    def post_hiring(self, request, *args, **kwargs):
+        team = self.get_object()
+        
+        # Check if the recruitment status is 1 (recruitment is open)
+        if team.recruitment_status != 1:
+            return Response({"detail": "Recruitment is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the status is 1 (active team)
+        if team.status != 1:
+            return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the current number of team members is less than max_members
+        current_members_count = TeamMember.objects.filter(team_id=team, status='accepted').count()
+        if current_members_count >= team.max_members:
+            return Response({"detail": "The team has reached the maximum number of members."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If all conditions are met, update recruitment_status
+        team.recruitment_status = 2 # 2 means hiring is open
+        team.save()
+        
+        serializer = TeamSerializer(team)
+        return Response(serializer.data)
+    
+    # TENTATIVE ENDPOINT
+    # @swagger_auto_schema(
+    #     operation_summary="Update Hiring",
+    #     operation_description="POST /teams/{id}/update_hiring",
+    #     responses={
+    #         status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
+    #         status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+    #         status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+    #         status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+    #         status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+    #         status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+    #     }
+    # )
+    # @action(detail=True, methods=['post'])
+    # def update_hiring(self, request, *args, **kwargs):
+    #     team = self.get_object()
+        
+    #     # Check if the recruitment status is 2 (hiring is open)
+    #     if team.recruitment_status != 2:
+    #         return Response({"detail": "Hiring is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     # Check if the status is 1 (active team)
+    #     if team.status != 1:
+    #         return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     # Check if the current number of team members is less than max_members
+    #     current_members_count = TeamMember.objects.filter(team_id=team, status='accepted').count()
+    #     if current_members_count >= team.max_members:
+    #         return Response({"detail": "The team has reached the maximum number of members."}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # If all conditions are met, update recruitment_status
+    #     team.recruitment_status = 2 # 2 means hiring is open
+    #     team.save()
+        
+    #     serializer = TeamSerializer(team)
+    #     return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_summary="Close Hiring",
+        operation_description="DELETE /teams/{id}/Close_hiring",
+        responses={
+            status.HTTP_204_NO_CONTENT: openapi.Response('No Content'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['delete'])
+    def close_hiring(self, request, *args, **kwargs):
+        team = self.get_object()
+        
+        # Check if the recruitment status is 2 (hiring is open)
+        if team.recruitment_status != 2:
+            return Response({"detail": "Hiring is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the status is 1 (active team)
+        if team.status != 1:
+            return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If all conditions are met, update recruitment_status
+        team.recruitment_status = 0 # 0 means recruitment is closed
+        team.save()
+
+        # Delete all pending team members
+        pending_team_members = TeamMember.objects.filter(team_id=team, status='pending')
+        pending_team_members.delete()
+
+        serializer = TeamSerializer(team)
+        return Response(serializer.data)
+    
+    # ENDPOINT FOR A CLASS MEMBER TO APPLY TO A HIRING POST
+    @swagger_auto_schema(
+        operation_summary="Apply to a team",
+        operation_description="POST /teams/{id}/apply",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['post'])
+    def apply(self, request, *args, **kwargs):
+        team = self.get_object()
+        
+        # Check if the recruitment status is 2 (hiring is open)
+        if team.recruitment_status != 2:
+            return Response({"detail": "Hiring is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the status is 1 (active team)
+        if team.status != 1:
+            return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the current number of team members is less than max_members
+        current_members_count = TeamMember.objects.filter(team_id=team, status='accepted').count()
+        if current_members_count >= team.max_members:
+            return Response({"detail": "The team has reached the maximum number of members."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user is already a member of the team
+        if TeamMember.objects.filter(team_id=team, user_id=request.user, status='accepted').exists():
+            return Response({"detail": "You are already a member of this team."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the user has already applied to the team
+        if TeamMember.objects.filter(team_id=team, user_id=request.user, status='pending').exists():
+            return Response({"detail": "You have already applied to this team."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # If all conditions are met, create a team member with status pending
+        team_member = TeamMember.objects.create(
+            user_id=request.user,
+            team_id=team,
+            role='tm',
+            status='pending'
+        )
+        team_member.save()
+        serializer = TeamSerializer(team)
+        return Response(serializer.data)
+    
+    # ENDPOINT FOR A TEAM LEADER TO REJECT A PENDING APPLICANT
+    @swagger_auto_schema(
+        operation_summary="Delete a team member",
+        operation_description="DELETE /teams/{team_pk}/members/{id}",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', TeamMemberSerializer),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['delete'])
+    def reject_member(self, request, *args, **kwargs):
+        team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], user_id=kwargs['id'], status='pending')
+        team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
+    
+        # Check if the user is a team leader or teacher
+        if not (team_leader or request.user.is_teacher):
+            return Response({'detail': 'You are not authorized to delete a team member.'}, status=status.HTTP_403_FORBIDDEN)
+
+        team_member.delete()
+        return Response({'message': 'Team member removed.'}, status=status.HTTP_200_OK)
+    
+
+    
+
+    
+
+    
+
+
+
+
+
+
+
+
+    

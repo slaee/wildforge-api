@@ -82,6 +82,7 @@ class TeamMembersController(viewsets.GenericViewSet,
         team_member.delete()
         return Response({'message': 'Team member removed.'}, status=status.HTTP_200_OK)
     
+    # ENDPOINT FOR A TEAM LEADER TO ACCEPT A PENDING TEAM MEMBER
     @swagger_auto_schema(
         operation_summary="Accept a team member",
         operation_description="POST /teams/{team_pk}/members/{id}/accept",
@@ -93,14 +94,16 @@ class TeamMembersController(viewsets.GenericViewSet,
             status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
-    @action(detail=True, methods=['POST'])
-    def accept(self, request, *args, **kwargs):
+    @action(detail=True, methods=['post'])
+    def accept_member(self, request, *args, **kwargs):
         team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], user_id=kwargs['id'])
+        team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
     
         # Check if the user is a team leader or teacher
-        if not (team_member.role =='tl' or request.user.is_teacher):
+        if not (team_leader or request.user.is_teacher):
             return Response({'detail': 'You are not authorized to accept a team member.'}, status=status.HTTP_403_FORBIDDEN)
 
         team_member.status = 'accepted'
         team_member.save()
-        return Response({'message': 'Team member accepted.'}, status=status.HTTP_200_OK)
+        serializer = TeamMemberSerializer(team_member)
+        return Response(serializer.data)
