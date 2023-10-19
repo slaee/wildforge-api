@@ -14,6 +14,8 @@ router.register(r'classes', ClassesController, basename='class')
 classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='class')
 classes_router.register(r'members', ClassMembersController, basename='class-members')
 
+classes_router.register(r'teams', TeamsController, basename='class-teams')
+
 urlpatterns = router.urls
 urlpatterns += classes_router.urls
 

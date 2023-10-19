@@ -5,16 +5,22 @@ from api.models import TeamMember
 class TeamMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamMember
-        fields = ['id', 'class_member_id', 'team_id']
+        fields = ['id', 'class_member_id', 'team_id', 'role', 'status', 'date_created', 'date_updated']
         labels = {
             'class_member_id': 'Class Member ID',
-            'team_id': 'Team ID'
+            'team_id': 'Team ID',
+            'role': 'Role',
+            'status': 'Status',
+            'date_created': 'Date Created',
+            'date_updated': 'Date Updated'
         }
 
         # disable input data body for PUT and PATCH requests
         extra_kwargs = {
             'class_member_id': {'read_only': True, 'required': False},
-            'team_id': {'read_only': True, 'required': False}
+            'team_id': {'read_only': True, 'required': False},
+            'role': {'default': 'm', 'required': True},
+            'status': {'default': 'pending', 'required': True},
         }
 
     def create(self, validated_data):

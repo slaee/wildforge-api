@@ -52,7 +52,7 @@ class TeamsController(viewsets.GenericViewSet,
         team_member = TeamMember.objects.create(
             user_id=request.user,
             team_id=new_team,
-            role='tl',
+            role='l',
             status='accepted'
         )
         team_member.save()
@@ -147,54 +147,10 @@ class TeamsController(viewsets.GenericViewSet,
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
     
-    @swagger_auto_schema(
-        operation_summary="Joins a team",
-        operation_description="POST /teams/{id}/join",
-        responses={
-            status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
-            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
-            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
-            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
-            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
-        }
-    )
-    @action(detail=True, methods=['post'])
-    def join(self, request, *args, **kwargs):
-        team = self.get_object()
-        team_member = TeamMember.objects.create(
-            user_id=request.user,
-            team_id=team,
-            role='tm',
-            status='pending'
-        )
-        team_member.save()
-        serializer = TeamSerializer(team)
-        return Response(serializer.data)
-    
-    "RECRUITMENT/HIRING - RELATED ENDPOINTS"
-
-    @swagger_auto_schema(
-        operation_summary="Start Recruitment",
-        operation_description="POST /teams/{id}/start_recruitment",
-        responses={
-            status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
-            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
-            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
-            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
-            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
-        }
-    )
-    @action(detail=True, methods=['post'])
-    def start_recruitment(self, request, *args, **kwargs):
-        team = self.get_object()
-        team.recruitment_status = 1
-        team.save()
-        serializer = TeamSerializer(team)
-        return Response(serializer.data)
     
     @swagger_auto_schema(
     operation_summary="Post Hiring",
-    operation_description="POST /teams/{id}/post_hiring",
+    operation_description="PUT /teams/{id}/open",
     responses={
         status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
         status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -204,8 +160,8 @@ class TeamsController(viewsets.GenericViewSet,
         status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
-    @action(detail=True, methods=['post'])
-    def post_hiring(self, request, *args, **kwargs):
+    @action(detail=True, methods=['PUT'])
+    def open(self, request, *args, **kwargs):
         team = self.get_object()
         
         # Check if the recruitment status is 1 (recruitment is open)
@@ -267,7 +223,7 @@ class TeamsController(viewsets.GenericViewSet,
 
     @swagger_auto_schema(
         operation_summary="Close Hiring",
-        operation_description="DELETE /teams/{id}/Close_hiring",
+        operation_description="PUT /teams/{id}/close",
         responses={
             status.HTTP_204_NO_CONTENT: openapi.Response('No Content'),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -277,8 +233,8 @@ class TeamsController(viewsets.GenericViewSet,
             status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
-    @action(detail=True, methods=['delete'])
-    def close_hiring(self, request, *args, **kwargs):
+    @action(detail=True, methods=['put'])
+    def close(self, request, *args, **kwargs):
         team = self.get_object()
         
         # Check if the recruitment status is 2 (hiring is open)
@@ -303,7 +259,7 @@ class TeamsController(viewsets.GenericViewSet,
     # ENDPOINT FOR A CLASS MEMBER TO APPLY TO A HIRING POST
     @swagger_auto_schema(
         operation_summary="Apply to a team",
-        operation_description="POST /teams/{id}/apply",
+        operation_description="POST /teams/{id}/join",
         responses={
             status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -314,7 +270,7 @@ class TeamsController(viewsets.GenericViewSet,
         }
     )
     @action(detail=True, methods=['post'])
-    def apply(self, request, *args, **kwargs):
+    def join(self, request, *args, **kwargs):
         team = self.get_object()
         
         # Check if the recruitment status is 2 (hiring is open)
@@ -348,30 +304,7 @@ class TeamsController(viewsets.GenericViewSet,
         team_member.save()
         serializer = TeamSerializer(team)
         return Response(serializer.data)
-    
-    # ENDPOINT FOR A TEAM LEADER TO REJECT A PENDING APPLICANT
-    @swagger_auto_schema(
-        operation_summary="Delete a team member",
-        operation_description="DELETE /teams/{team_pk}/members/{id}",
-        responses={
-            status.HTTP_200_OK: openapi.Response('OK', TeamMemberSerializer),
-            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
-            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
-            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
-            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
-        }
-    )
-    @action(detail=True, methods=['delete'])
-    def reject_member(self, request, *args, **kwargs):
-        team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], user_id=kwargs['id'], status='pending')
-        team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
-    
-        # Check if the user is a team leader or teacher
-        if not (team_leader or request.user.is_teacher):
-            return Response({'detail': 'You are not authorized to delete a team member.'}, status=status.HTTP_403_FORBIDDEN)
 
-        team_member.delete()
-        return Response({'message': 'Team member removed.'}, status=status.HTTP_200_OK)
     
 
     

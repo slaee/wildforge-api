@@ -2,3 +2,5 @@ from .ClassesController import ClassesController
 from .UsersController import UsersController
 from .TokensController import TokensController
 from .ClassMembersController import ClassMembersController
+from .TeamsController import TeamsController
+from .TeamMembersController import TeamMembersController

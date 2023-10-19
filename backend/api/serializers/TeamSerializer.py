@@ -13,6 +13,13 @@ class TeamSerializer(serializers.ModelSerializer):
             'max_members': 'Maximum number of members',
             'status': 'Hiring Status'
         }
+
+        # set default values
+        extra_kwargs = {
+            'description': {'required': False},
+            'max_members': {'default': 4},
+            'status': {'default': 1}
+        }
     
     team_member = NestedHyperlinkedRelatedField(
         many=True,
