@@ -33,4 +33,3 @@ class TeamSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-

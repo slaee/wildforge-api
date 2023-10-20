@@ -7,9 +7,12 @@ from rest_framework.response import Response
 
 from api.models import Team
 from api.models import TeamMember
+from api.models import ClassMember
+
 from api.serializers import TeamSerializer
-from api.serializers import UserSerializer
+from api.serializers import NoneSerializer
 from api.serializers import TeamMemberSerializer
+from api.serializers import ClassMemberSerializer
 
 class TeamsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -29,7 +32,7 @@ class TeamsController(viewsets.GenericViewSet,
         otherwise, return 403 Forbidden.
         """
         if self.action in ['create','destroy', 'update', 'partial_update']:
-            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+            return [permissions.IsAuthenticated()]
         elif self.action in ['retrieve', 'list', 'join']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
@@ -48,9 +51,12 @@ class TeamsController(viewsets.GenericViewSet,
     )
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
+        # get class member id by user id
+        class_member = ClassMember.objects.get(user_id=request.user)
+
         new_team = Team.objects.get(id=response.data['id'])
         team_member = TeamMember.objects.create(
-            user_id=request.user,
+            class_member_id=class_member,
             team_id=new_team,
             role='l',
             status='accepted'
@@ -90,7 +96,7 @@ class TeamsController(viewsets.GenericViewSet,
     
     @swagger_auto_schema(
         operation_summary="Gets a team",
-        operation_description="GET /teams/{id}",
+        operation_description="GET /classes/{class_pk}/teams",
         responses={
             status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
             status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
@@ -100,22 +106,12 @@ class TeamsController(viewsets.GenericViewSet,
         }
     )
     def list(self, request, *args, **kwargs):
-        user = UserSerializer(request.user).data
-        role = user.get('role')
-        teams = []
-
-        if role == 't':
-            # For teachers, list all teams
-            teams = Team.objects.all()
-        elif role == 'tl':
-            # For team leaders, list only the teams they belong to
-            teams = Team.objects.filter(team_member__user_id=request.user, team_member__role='tl', team_member__status='accepted')
-        elif role == 'tm':
-            # For team members, list the teams they belong to where status is accepted
-            teams = Team.objects.filter(team_member__user_id=request.user, team_member__role='tm', team_member__status='accepted')
-
-        serializer = TeamSerializer(teams, many=True)
-        return Response(serializer.data)
+        # get all teams and join with team members
+        response = super().list(request, *args, **kwargs)
+        for team in response.data:
+            team_members = TeamMember.objects.filter(team_id=team['id'])
+            team['team_members'] = TeamMemberSerializer(team_members, many=True).data
+        return response
     
     @swagger_auto_schema(
         operation_summary="Gets a team",
@@ -129,7 +125,10 @@ class TeamsController(viewsets.GenericViewSet,
         }
     )
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+        response = super().retrieve(request, *args, **kwargs)
+        team_members = TeamMember.objects.filter(team_id=response.data['id'])
+        response.data['team_members'] = TeamMemberSerializer(team_members, many=True).data
+        return response
     
     @swagger_auto_schema(
         operation_summary="Updates a team partially",
@@ -149,15 +148,17 @@ class TeamsController(viewsets.GenericViewSet,
     
     
     @swagger_auto_schema(
-    operation_summary="Post Hiring",
-    operation_description="PUT /teams/{id}/open",
-    responses={
-        status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
-        status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
-        status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
-        status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
-        status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
-        status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        method='PUT',
+        operation_summary="Post Hiring",
+        operation_description="PUT /teams/{id}/open",
+        request_body=NoneSerializer,
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
     @action(detail=True, methods=['PUT'])
@@ -165,20 +166,16 @@ class TeamsController(viewsets.GenericViewSet,
         team = self.get_object()
         
         # Check if the recruitment status is 1 (recruitment is open)
-        if team.recruitment_status != 1:
-            return Response({"detail": "Recruitment is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if the status is 1 (active team)
-        if team.status != 1:
-            return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
+        if team.status == 1:
+            return Response({"detail": "Team is already open for hiring"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if the current number of team members is less than max_members
         current_members_count = TeamMember.objects.filter(team_id=team, status='accepted').count()
         if current_members_count >= team.max_members:
             return Response({"detail": "The team has reached the maximum number of members."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # If all conditions are met, update recruitment_status
-        team.recruitment_status = 2 # 2 means hiring is open
+        # If all conditions are met, update status
+        team.status = 1
         team.save()
         
         serializer = TeamSerializer(team)
@@ -222,8 +219,10 @@ class TeamsController(viewsets.GenericViewSet,
     #     return Response(serializer.data)
 
     @swagger_auto_schema(
+        method='PUT',
         operation_summary="Close Hiring",
         operation_description="PUT /teams/{id}/close",
+        request_body=NoneSerializer,
         responses={
             status.HTTP_204_NO_CONTENT: openapi.Response('No Content'),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -233,20 +232,16 @@ class TeamsController(viewsets.GenericViewSet,
             status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=['PUT'])
     def close(self, request, *args, **kwargs):
         team = self.get_object()
         
         # Check if the recruitment status is 2 (hiring is open)
-        if team.recruitment_status != 2:
-            return Response({"detail": "Hiring is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if the status is 1 (active team)
-        if team.status != 1:
-            return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # If all conditions are met, update recruitment_status
-        team.recruitment_status = 0 # 0 means recruitment is closed
+        if team.status == 0:
+            return Response({"detail": "Team is already closed for hiring."}, status=status.HTTP_400_BAD_REQUEST)
+    
+        # If all conditions are met, update status
+        team.status = 0 # 0 means recruitment is closed
         team.save()
 
         # Delete all pending team members

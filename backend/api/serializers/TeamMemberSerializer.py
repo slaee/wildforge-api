@@ -19,8 +19,8 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'class_member_id': {'read_only': True, 'required': False},
             'team_id': {'read_only': True, 'required': False},
-            'role': {'default': 'm', 'required': True},
-            'status': {'default': 'pending', 'required': True},
+            'role': {'default': 'm', 'required': False},
+            'status': {'default': 'pending', 'required': False},
         }
 
     def create(self, validated_data):

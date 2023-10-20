@@ -1,3 +1,4 @@
+from .NoneSerializer import NoneSerializer
 from .ClassSerializer import ClassSerializer
 from .UserSerializer import UserSerializer
 from .UserSerializer import SuperUserSerializer
