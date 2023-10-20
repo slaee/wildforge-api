@@ -4,3 +4,4 @@ from .TokensController import TokensController
 from .ClassMembersController import ClassMembersController
 from .TeamsController import TeamsController
 from .TeamMembersController import TeamMembersController
+from .PeerEvalsController import PeerEvalsController
