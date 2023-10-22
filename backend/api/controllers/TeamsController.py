@@ -12,7 +12,6 @@ from api.models import ClassMember
 from api.serializers import TeamSerializer
 from api.serializers import NoneSerializer
 from api.serializers import TeamMemberSerializer
-from api.serializers import ClassMemberSerializer
 
 class TeamsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -31,10 +30,9 @@ class TeamsController(viewsets.GenericViewSet,
         If the action is 'retrieve', 'list', or 'join', only allow authenticated users to access.
         otherwise, return 403 Forbidden.
         """
-        if self.action in ['create','destroy', 'update', 'partial_update']:
+        if self.action in ['create','destroy', 'update', 'partial_update', 'retrieve', 'list', 'join']:
             return [permissions.IsAuthenticated()]
-        elif self.action in ['retrieve', 'list', 'join']:
-            return [permissions.IsAuthenticated()]
+
         return super().get_permissions()
     
     @swagger_auto_schema(
@@ -180,43 +178,6 @@ class TeamsController(viewsets.GenericViewSet,
         
         serializer = TeamSerializer(team)
         return Response(serializer.data)
-    
-    # TENTATIVE ENDPOINT
-    # @swagger_auto_schema(
-    #     operation_summary="Update Hiring",
-    #     operation_description="POST /teams/{id}/update_hiring",
-    #     responses={
-    #         status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
-    #         status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
-    #         status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
-    #         status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
-    #         status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
-    #         status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
-    #     }
-    # )
-    # @action(detail=True, methods=['post'])
-    # def update_hiring(self, request, *args, **kwargs):
-    #     team = self.get_object()
-        
-    #     # Check if the recruitment status is 2 (hiring is open)
-    #     if team.recruitment_status != 2:
-    #         return Response({"detail": "Hiring is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     # Check if the status is 1 (active team)
-    #     if team.status != 1:
-    #         return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     # Check if the current number of team members is less than max_members
-    #     current_members_count = TeamMember.objects.filter(team_id=team, status='accepted').count()
-    #     if current_members_count >= team.max_members:
-    #         return Response({"detail": "The team has reached the maximum number of members."}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     # If all conditions are met, update recruitment_status
-    #     team.recruitment_status = 2 # 2 means hiring is open
-    #     team.save()
-        
-    #     serializer = TeamSerializer(team)
-    #     return Response(serializer.data)
 
     @swagger_auto_schema(
         method='PUT',
