@@ -18,7 +18,7 @@ class TeamSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'description': {'required': False},
             'max_members': {'default': 4},
-            'status': {'default': 1}
+            'status': {'default': 'open'}
         }
     
     team_member = NestedHyperlinkedRelatedField(
