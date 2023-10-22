@@ -49,6 +49,9 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def create(self, request, *args, **kwargs):
+        """
+        Creates a new class and adds the user as a teacher of the class.
+        """
         response = super().create(request, *args, **kwargs)
         new_class = Class.objects.get(id=response.data['id'])
         class_member = ClassMember.objects.create(
@@ -73,6 +76,12 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def list(self, request, *args, **kwargs):
+        """
+        Lists all classes that the user is a member of.
+        This function will depend on the user's role.
+            if superuser, return all classes
+            otherwise, return classes that the user is a member of
+        """
         # JOIN ClassMembers ON ClassMembers.class_id = Class.id LEFT JOIN Users ON Users.id = ClassMembers.user_id
         try:
             user = SuperUserSerializer(request.user).data            
@@ -120,6 +129,9 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieves a class that the user is a member of.
+        """
         class_id = kwargs['pk']
         try:
             Class.objects.get(id=class_id)
@@ -154,6 +166,9 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def update(self, request, *args, **kwargs):
+        """
+        Updates a class.
+        """
         return super().update(request, *args, **kwargs)
     
     
@@ -171,6 +186,9 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def partial_update(self, request, *args, **kwargs):
+        """
+        Updates a class partially.
+        """
         return super().partial_update(request, *args, **kwargs)
     
     
@@ -187,6 +205,9 @@ class ClassesController(viewsets.GenericViewSet,
         }
     )
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes a class by class id as path parameter.
+        """
         return super().destroy(request, *args, **kwargs)
     
     @swagger_auto_schema(
@@ -204,6 +225,9 @@ class ClassesController(viewsets.GenericViewSet,
     )
     @action(methods=['POST'], detail=False, url_name='join')
     def join(self, request, *args, **kwargs):
+        """
+        Joins a class by class code as request body.
+        """
         class_code = request.data['class_code']
         try:
             # check if user is already a member of the class
