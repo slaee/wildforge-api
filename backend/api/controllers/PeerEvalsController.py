@@ -59,7 +59,7 @@ class PeerEvalsController (viewsets.GenericViewSet,
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-    
+        
     @swagger_auto_schema(
         operation_summary="Retrieves a peer eval",
         operation_description="GET /evals/{id}",
