@@ -7,6 +7,7 @@ from .AuthTokenObtainPairSerializer import AuthTokenObtainPairSerializer
 from .ClassAssignedSerializer import ClassAssignedSerializer
 from .ClassMemberSerializer import ClassMemberSerializer
 from .TeamSerializer import TeamSerializer
+from .TeamLeaderSerializer import TeamLeaderSerializer
 from .TeamMemberSerializer import TeamMemberSerializer
 from .RemarksSerializer import RemarksSerializer
 from .PeerEvalSerializer import PeerEvalSerializer
