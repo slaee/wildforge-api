@@ -3,6 +3,7 @@ from .Class import Class
 from .ClassMember import ClassMember
 from .Team import Team
 from .TeamMember import TeamMember
+from .TeamLeader import TeamLeader
 from .Remarks import Remarks
 from .PeerEval import PeerEval
 from .ClassAssigned import ClassAssigned
@@ -16,4 +17,5 @@ __all__ = [
     'Remarks',
     'PeerEval',
     'ClassAssigned',
+    'TeamLeader',
 ]
