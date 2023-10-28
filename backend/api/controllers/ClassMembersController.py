@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from api.models import User
 from api.models import ClassMember
+from api.models import TeamLeader
 from api.serializers import ClassMemberSerializer
 
 class ClassMembersController(viewsets.GenericViewSet,
@@ -23,9 +24,9 @@ class ClassMembersController(viewsets.GenericViewSet,
         If the action is 'list', only allow authenticated users to access.
         otherwise, return 403 Forbidden.
         """
-        if self.action in ['destroy', 'accept']:
+        if self.action in ['destroy', 'accept', 'setleader']:
             return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
-        elif self.action in ['list']:
+        elif self.action in ['list', 'acceptasleader']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
@@ -95,4 +96,72 @@ class ClassMembersController(viewsets.GenericViewSet,
         except ClassMember.DoesNotExist:
             return Response({'error': 'Class member does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         
-    
+    @swagger_auto_schema(
+        method='POST',
+        operation_summary="Sets a class member as a team leader",
+        operation_description="POST /classes/{class_pk}/members/{id}/setleader", request_body=None,
+        responses={
+            status.HTTP_202_ACCEPTED: openapi.Response('Accepted'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['POST'])
+    def setleader(self, request, *args, **kwargs):
+        try:
+            # get the class member by id 
+            class_member = ClassMember.objects.get(id=kwargs['pk'])
+            
+            # check if class member is accepted
+            if class_member.status != 'accepted':
+                return Response({'error': 'Class member is not accepted'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # check if class member is already a team leader
+            team_leader = TeamLeader.objects.filter(class_member_id=class_member)
+            if team_leader.exists():
+                return Response({'error': 'Class member is already a team leader'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # create a team leader object
+            team_leader = TeamLeader.objects.create(class_member_id=class_member)
+            team_leader.save()
+            return Response({'detail': 'Class member is now a pending team leader.'}, status=status.HTTP_202_ACCEPTED)
+        except ClassMember.DoesNotExist:
+            return Response({'error': 'Class member does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+    @swagger_auto_schema(
+        method='PUT',
+        operation_summary="Updates status of pending team leader",
+        operation_description="PUT /classes/{class_pk}/members/{id}/acceptasleader", request_body=None,
+        responses={
+            status.HTTP_202_ACCEPTED: openapi.Response('Accepted'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['PUT'])
+    def acceptasleader(self, request, *args, **kwargs):
+        try:
+            # get the class member by id 
+            class_member = ClassMember.objects.get(id=kwargs['pk'])
+            
+            # check if class member is accepted
+            if class_member.status != 'accepted':
+                return Response({'error': 'Class member is not accepted'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # check if class member is already a team leader
+            team_leader = TeamLeader.objects.filter(class_member_id=class_member)
+            if not team_leader.exists():
+                return Response({'error': 'You are not being added as team leader'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # update the team leader object
+            team_leader = team_leader.first()
+            team_leader.status = 'accepted'
+            team_leader.save()
+            return Response({'detail': 'Class member is now a team leader.'}, status=status.HTTP_202_ACCEPTED)
+        except:
+            # return Internal Server Error if something went wrong
+            return Response({'error': 'Something went wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
