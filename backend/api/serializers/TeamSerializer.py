@@ -33,3 +33,8 @@ class TeamSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+class JoinTeamSerializer (serializers.Serializer):
+    team_id = serializers.IntegerField()
+
+    class Meta:
+        ref_name = 'JoinTeamInput'
