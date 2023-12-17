@@ -1,14 +1,26 @@
+# Authentication serializers
+from .AuthTokenObtainPairSerializer import AuthTokenObtainPairSerializer
+
 from .NoneSerializer import NoneSerializer
-from .ClassSerializer import ClassSerializer
+
+# ClassRoom Model Serializers
+from .ClassRoomSerializer import ClassRoomSerializer
+from .ClassRoomSerializer import JoinClassRoomSerializer
+
+
+# User Model Serializers 
 from .UserSerializer import UserSerializer
 from .UserSerializer import SuperUserSerializer
 from .UserSerializer import LoginSerializer
-from .AuthTokenObtainPairSerializer import AuthTokenObtainPairSerializer
-from .ClassAssignedSerializer import ClassAssignedSerializer
+
 from .ClassMemberSerializer import ClassMemberSerializer
+
 from .TeamSerializer import TeamSerializer
-from .TeamLeaderSerializer import TeamLeaderSerializer
+
 from .TeamMemberSerializer import TeamMemberSerializer
-from .RemarksSerializer import RemarksSerializer
+
+from .RequestSerializer import RequestSerializer
+
+from .ClassRoomPESerializer import ClassRoomPESerializer
+
 from .PeerEvalSerializer import PeerEvalSerializer
-from .ClassSerializer import JoinClassSerializer

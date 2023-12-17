@@ -6,19 +6,17 @@ from api.models import Team
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ['id', 'name', 'description', 'max_members', 'status', 'team_member']
+        fields = ['id', 'name', 'description', 'status', 'team_member']
         labels = {
             'name': 'Team Name',
             'description': 'Team Description',
-            'max_members': 'Maximum number of members',
-            'status': 'Hiring Status'
+            'status': 'Hiring Status',
         }
 
         # set default values
         extra_kwargs = {
             'description': {'required': False},
-            'max_members': {'default': 4},
-            'status': {'default': 'open'}
+            'status': {'default': Team.OPEN, 'required': False},
         }
     
     team_member = NestedHyperlinkedRelatedField(

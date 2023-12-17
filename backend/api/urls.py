@@ -10,12 +10,11 @@ from .controllers import *
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', UsersController, basename='users')
 router.register(r'evals', PeerEvalsController, basename='eval')
-router.register(r'classes', ClassesController, basename='class')
+router.register(r'classes', ClassRoomsController, basename='class')
 
 
 classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='class')
 classes_router.register(r'members', ClassMembersController, basename='class-members')
-classes_router.register(r'teamleaders', TeamLeadersController, basename='class-teamleaders')
 
 classes_router.register(r'teams', TeamsController, basename='class-teams')
 

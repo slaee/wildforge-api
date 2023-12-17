@@ -1,21 +1,19 @@
 from .User import User
-from .Class import Class
+from .ClassRoom import ClassRoom
 from .ClassMember import ClassMember
 from .Team import Team
 from .TeamMember import TeamMember
-from .TeamLeader import TeamLeader
-from .Remarks import Remarks
+from .Request import Request
 from .PeerEval import PeerEval
-from .ClassAssigned import ClassAssigned
+from .ClassRoomPE import ClassRoomPE
 
 __all__ = [
     'User',
-    'Class',
+    'ClassRoom',
     'ClassMember',
     'Team',
     'TeamMember',
-    'Remarks',
+    'Request',
     'PeerEval',
-    'ClassAssigned',
-    'TeamLeader',
+    'ClassRoomPE'
 ]

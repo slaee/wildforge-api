@@ -45,20 +45,21 @@ class TeamMembersController(viewsets.GenericViewSet,
         }   
     )
     def list(self, request, *args, **kwargs):
-        current_team_member = TeamMember.objects.filter(team_id=kwargs['team_pk'], user_id=request.user, status='accepted')
-        if not current_team_member.exists():
-            return Response({'error': 'You are not a member of this class.'}, status=403)
+        pass
+        # current_team_member = TeamMember.objects.filter(team_id=kwargs['team_pk'], user_id=request.user, status='accepted')
+        # if not current_team_member.exists():
+        #     return Response({'error': 'You are not a member of this class.'}, status=403)
         
-        team_members = TeamMember.objects.filter(team_id=kwargs['team_pk']).select_related('user_id').all()
-        serializer = TeamMemberSerializer(team_members, many=True).data
+        # team_members = TeamMember.objects.filter(team_id=kwargs['team_pk']).select_related('user_id').all()
+        # serializer = TeamMemberSerializer(team_members, many=True).data
 
-        for team_member in serializer:
-            user = User.objects.get(id=team_member['user_id'])
-            team_member['first_name'] = user.first_name
-            team_member['last_name'] = user.last_name
+        # for team_member in serializer:
+        #     user = User.objects.get(id=team_member['user_id'])
+        #     team_member['first_name'] = user.first_name
+        #     team_member['last_name'] = user.last_name
         
 
-        return Response(serializer, status=status.HTTP_200_OK)
+        # return Response(serializer, status=status.HTTP_200_OK)
     
     @swagger_auto_schema(
         operation_summary="Remove a member from the team",
@@ -72,15 +73,16 @@ class TeamMembersController(viewsets.GenericViewSet,
         }
     )
     def destroy(self, request, *args, **kwargs):
-        team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], id=kwargs['id'])
-        team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
+        pass
+        # team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], id=kwargs['id'])
+        # team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
     
-        # Check if the user is the team leader of the team member's team or a teacher of the class
-        if not (request.user == team_leader or request.user.is_teacher):
-            return Response({'detail': 'You are not authorized to remove this team member.'}, status=status.HTTP_403_FORBIDDEN)
+        # # Check if the user is the team leader of the team member's team or a teacher of the class
+        # if not (request.user == team_leader or request.user.is_teacher):
+        #     return Response({'detail': 'You are not authorized to remove this team member.'}, status=status.HTTP_403_FORBIDDEN)
 
-        team_member.delete()
-        return Response({'message': 'Team member removed.'}, status=status.HTTP_200_OK)
+        # team_member.delete()
+        # return Response({'message': 'Team member removed.'}, status=status.HTTP_200_OK)
     
     # ENDPOINT FOR A TEAM LEADER TO ACCEPT A PENDING TEAM MEMBER
     @swagger_auto_schema(
@@ -96,14 +98,15 @@ class TeamMembersController(viewsets.GenericViewSet,
     )
     @action(detail=True, methods=['post'])
     def accept_member(self, request, *args, **kwargs):
-        team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], user_id=kwargs['id'])
-        team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
+        pass
+        # team_member = TeamMember.objects.get(team_id=kwargs['team_pk'], user_id=kwargs['id'])
+        # team_leader = TeamMember.objects.get(team_id=kwargs['team_pk'], role='tl')
     
-        # Check if the user is a team leader or teacher
-        if not (team_leader or request.user.is_teacher):
-            return Response({'detail': 'You are not authorized to accept a team member.'}, status=status.HTTP_403_FORBIDDEN)
+        # # Check if the user is a team leader or teacher
+        # if not (team_leader or request.user.is_teacher):
+        #     return Response({'detail': 'You are not authorized to accept a team member.'}, status=status.HTTP_403_FORBIDDEN)
 
-        team_member.status = 'accepted'
-        team_member.save()
-        serializer = TeamMemberSerializer(team_member)
-        return Response(serializer.data)
+        # team_member.status = 'accepted'
+        # team_member.save()
+        # serializer = TeamMemberSerializer(team_member)
+        # return Response(serializer.data)

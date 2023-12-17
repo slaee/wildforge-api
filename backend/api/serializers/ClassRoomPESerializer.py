@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from api.models import ClassAssigned, Class, PeerEval
+from api.models import ClassRoomPE, ClassRoom, PeerEval
 
 
-class ClassAssignedSerializer(serializers.ModelSerializer):
+class ClassRoomPESerializer(serializers.ModelSerializer):
     class Meta:
-        model = ClassAssigned
+        model = ClassRoomPE
         fields = ['id', 'peer_eval_id', 'class_id']
         labels = {
             'peer_eval_id': 'Peer Evaluation ID',
@@ -17,7 +17,7 @@ class ClassAssignedSerializer(serializers.ModelSerializer):
         class_id = validated_data.get('class_id')
 
         # Check if peer_eval_id and class_id exist in the database
-        if not Class.objects.filter(id=class_id).exists():
+        if not ClassRoom.objects.filter(id=class_id).exists():
             raise serializers.ValidationError("Class ID does not exist.")
 
         if not PeerEval.objects.filter(id=peer_eval_id).exists():

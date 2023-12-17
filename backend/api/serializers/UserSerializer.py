@@ -5,19 +5,19 @@ from api.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'is_staff']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'role']
         labels = {
             'first_name': 'First Name',
             'last_name': 'Last Name',
             'email': 'Email',
             'password': 'Password',
-            'is_staff': 'Is Staff',
+            'role': 'Role',
             'is_superuser': 'Is Superuser'
         }
 
         # set default values
         extra_kwargs = {
-            'is_staff': {'default': False},
+            'role': {'default': User.BASIC, 'read_only': True, 'required': False},
             'password': {'write_only': True}
         }
 
@@ -32,19 +32,19 @@ class UserSerializer(serializers.ModelSerializer):
 class SuperUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'is_staff', 'is_superuser']
+        fields = ['id', 'first_name', 'last_name', 'email', 'role', 'is_superuser']
         # make all read-only fields
         extra_kwargs = {
             'first_name': {'read_only': True, 'required': False},
             'last_name': {'read_only': True, 'required': False},
             'email': {'read_only': True, 'required': False},
-            'is_staff': {'read_only': True, 'required': False},
+            'role': {'read_only': True, 'required': False},
             'is_superuser': {'read_only': True, 'required': False}
         }
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(max_length=255)
-    password = serializers.CharField(max_length=128, write_only=True)
+    email = serializers.EmailField(max_length=50)
+    password = serializers.CharField(max_length=50, write_only=True)
 
     def validate(self, data):
         email = data.get('email', None)

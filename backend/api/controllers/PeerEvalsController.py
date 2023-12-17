@@ -43,7 +43,8 @@ class PeerEvalsController (viewsets.GenericViewSet,
         }
     )
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        pass
+        # return super().list(request, *args, **kwargs)
     
     @swagger_auto_schema(
         operation_summary="Creates a peer eval",
@@ -58,7 +59,8 @@ class PeerEvalsController (viewsets.GenericViewSet,
         }
     )
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        pass
+        # return super().create(request, *args, **kwargs)
         
     @swagger_auto_schema(
         operation_summary="Retrieves a peer eval",
@@ -88,7 +90,8 @@ class PeerEvalsController (viewsets.GenericViewSet,
         }
     )
     def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        pass
+        # return super().update(request, *args, **kwargs)
     
     @swagger_auto_schema(
         operation_summary="Deletes a peer eval",
@@ -102,4 +105,5 @@ class PeerEvalsController (viewsets.GenericViewSet,
         }
     )
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+        pass
+        # return super().destroy(request, *args, **kwargs)
