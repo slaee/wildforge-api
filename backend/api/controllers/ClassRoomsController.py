@@ -84,7 +84,7 @@ class ClassRoomsController(viewsets.GenericViewSet,
                 queryset = ClassRoom.objects.all()
                 serializer = self.get_serializer(queryset, many=True)
             else:
-                queryset = ClassRoom.objects.filter(classmember__user_id=request.user, classmember__status='accepted')
+                queryset = ClassRoom.objects.filter(classmember__user_id=request.user, classmember__status=ClassMember.ACCEPTED)
                 serializer = self.get_serializer(queryset, many=True)
         except:
             # <DEV ONLY>
@@ -228,12 +228,14 @@ class ClassRoomsController(viewsets.GenericViewSet,
             # check if user is already a member of the class
             class_member = ClassMember.objects.filter(user_id=request.user, class_id__class_code=class_code)
             if class_member:
-                return Response({'details': 'You are already a member of this class'})
+                return Response({'details': 'You already joined the class'})
             
             class_to_join = ClassRoom.objects.get(class_code=class_code)
             class_member = ClassMember.objects.create(
                 user_id=request.user,
-                class_id=class_to_join
+                class_id=class_to_join,
+                role=ClassMember.STUDENT,
+                status=ClassMember.PENDING,
             )
             class_member.save()
             return Response({'details': 'Partially joined class'}, status=status.HTTP_200_OK)
