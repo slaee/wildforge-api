@@ -18,7 +18,8 @@ class ClassRoomSerializer(serializers.ModelSerializer):
 
         # make class_code read-only and update-only
         extra_kwargs = {
-            'class_code': {'read_only': True, 'required': False}
+            'class_code': {'read_only': True, 'required': False},
+            'max_teams_members': {'default': 5}
         }
     
     class_member = NestedHyperlinkedRelatedField(

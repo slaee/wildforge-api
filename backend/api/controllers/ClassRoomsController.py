@@ -6,11 +6,13 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
 
 from api.custom_permissions import IsModerator
-from api.custom_permissions import IsBasic
 
 from api.models import ClassRoom
+from api.models import ClassMember
 from api.serializers import ClassRoomSerializer
 from api.serializers import JoinClassRoomSerializer
+from api.serializers import UserSerializer
+from api.serializers import SuperUserSerializer
 
 class ClassRoomsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -26,10 +28,9 @@ class ClassRoomsController(viewsets.GenericViewSet,
         if self.action in ['create','destroy', 'update', 'partial_update']:
             return [permissions.IsAuthenticated(), IsModerator()]
         elif self.action in ['retrieve', 'list', 'join']:
-            return [permissions.IsAuthenticated(), IsModerator() or IsBasic()]
+            return [permissions.IsAuthenticated()]
         return super().get_permissions()
     
-
     @swagger_auto_schema(
         operation_summary="Creates a new class",
         operation_description="POST /classes",
@@ -43,21 +44,22 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     def create(self, request, *args, **kwargs):
-        pass
-        # """
-        # Creates a new class and adds the user as a teacher of the class.
-        # """
-        # response = super().create(request, *args, **kwargs)
-        # new_class = ClassRoom.objects.get(id=response.data['id'])
-        # class_member = ClassMember.objects.create(
-        #     user_id=request.user,
-        #     class_id=new_class,
-        #     role='t',
-        #     status='accepted'
-        # )
-        # class_member.save()
-        # return response
-
+        """
+        Creates a new class and adds the user as a teacher of the class.
+        """
+        response = super().create(request, *args, **kwargs)
+        try:
+            new_class = ClassRoom.objects.get(id=response.data['id'])
+            class_member = ClassMember.objects.create(
+                user_id=request.user,
+                class_id=new_class,
+                role=ClassMember.TEACHER,
+                status=ClassMember.ACCEPTED
+            )
+            class_member.save()
+        except:
+            return Response({'details': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return response
 
     @swagger_auto_schema(
         operation_summary="Lists all classes",
@@ -71,46 +73,43 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     def list(self, request, *args, **kwargs):
-        pass
-        # """
-        # Lists all classes that the user is a member of.
-        # This function will depend on the user's role.
-        #     if superuser, return all classes
-        #     otherwise, return classes that the user is a member of
-        # """
-        # # JOIN ClassMembers ON ClassMembers.class_id = ClassRoom.id LEFT JOIN Users ON Users.id = ClassMembers.user_id
-        # try:
-        #     user = SuperUserSerializer(request.user).data            
-        #     if user.get('is_superuser'):
-        #         queryset = ClassRoom.objects.all()
-        #         serializer = self.get_serializer(queryset, many=True)
-        #     else:
-        #         queryset = ClassRoom.objects.filter(classmember__user_id=request.user, classmember__status='accepted')
-        #         serializer = self.get_serializer(queryset, many=True)
-        # except:
-        #     # <DEV ONLY>
-        #     queryset = ClassRoom.objects.all()
-        #     serializer = self.get_serializer(queryset, many=True)
-        #     # </DEV ONLY>
+        """
+        Lists all classes that the user is a member of.
+        This function will depend on the user's role.
+        If superuser, return all classes otherwise, return classes that the user is a member of
+        """
+        try:
+            user = SuperUserSerializer(request.user).data            
+            if user.get('is_superuser'):
+                queryset = ClassRoom.objects.all()
+                serializer = self.get_serializer(queryset, many=True)
+            else:
+                queryset = ClassRoom.objects.filter(classmember__user_id=request.user, classmember__status='accepted')
+                serializer = self.get_serializer(queryset, many=True)
+        except:
+            # <DEV ONLY>
+            queryset = ClassRoom.objects.all()
+            serializer = self.get_serializer(queryset, many=True)
+            # </DEV ONLY>
 
-        # for i in range(len(serializer.data)):
-        #     class_id = serializer.data[i]['id']
-        #     class_members = ClassMember.objects.filter(class_id=class_id)
+        for i in range(len(serializer.data)):
+            class_id = serializer.data[i]['id']
+            class_members = ClassMember.objects.filter(class_id=class_id)
 
-        #     serializer.data[i]['members'] = []
-        #     for class_member in class_members:
-        #         user = UserSerializer(class_member.user_id).data
-        #         member = {
-        #             'member_id': class_member.id,
-        #             'first_name': user.get('first_name'),
-        #             'last_name': user.get('last_name'),
-        #             'email': user.get('email'),
-        #             'role': class_member.role,
-        #             'status': class_member.status
-        #         }
-                
-        #         serializer.data[i]['members'].append(member)
-        # return Response(serializer.data)
+            serializer.data[i]['members'] = []
+            for class_member in class_members:
+                user = UserSerializer(class_member.user_id).data
+                member = {
+                    'member_id': class_member.id,
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name'),
+                    'email': user.get('email'),
+                    'role': class_member.role,
+                    'status': class_member.status
+                }
+                serializer.data[i]['members'].append(member)
+
+        return Response(serializer.data)
     
     
     @swagger_auto_schema(
@@ -125,28 +124,27 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     def retrieve(self, request, *args, **kwargs):
-        pass
-        # """
-        # Retrieves a class that the user is a member of.
-        # """
-        # class_id = kwargs['pk']
-        # try:
-        #     ClassRoom.objects.get(id=class_id)
-        # except ClassRoom.DoesNotExist:
-        #     return Response({'details': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
+        """
+        Retrieves a class that the user is a member of.
+        """
+        class_id = kwargs['pk']
+        try:
+            ClassRoom.objects.get(id=class_id)
+        except ClassRoom.DoesNotExist:
+            return Response({'details': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
         
-        # class_member = ClassMember.objects.filter(user_id=request.user, class_id=class_id)
-        # if not class_member:
-        #     return Response({'details': 'You are not a member of this class'}, status=status.HTTP_401_UNAUTHORIZED)
+        class_member = ClassMember.objects.filter(user_id=request.user, class_id=class_id)
+        if not class_member:
+            return Response({'details': 'You are not a member of this class'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        # data = super().retrieve(request, *args, **kwargs)
+        response = super().retrieve(request, *args, **kwargs)
 
-        # # count number of members
-        # roles = ['tl', 's']
-        # number_of_students = ClassMember.objects.filter(class_id=class_id, role__in=roles, status='accepted').count()
-        # data.data['number_of_students'] = number_of_students
+        # count number of members
+        roles = [ClassMember.TEACHER, ClassMember.STUDENT]
+        number_of_students = ClassMember.objects.filter(class_id=class_id, role__in=roles, status=ClassMember.ACCEPTED).count()
+        response.data['number_of_students'] = number_of_students
         
-        # return data
+        return response
     
     
     @swagger_auto_schema(
@@ -163,11 +161,10 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     def update(self, request, *args, **kwargs):
-        pass
-        # """
-        # Updates a class.
-        # """
-        # return super().update(request, *args, **kwargs)
+        """
+        Updates a class.
+        """
+        return super().update(request, *args, **kwargs)
     
     
     @swagger_auto_schema(
@@ -184,11 +181,10 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     def partial_update(self, request, *args, **kwargs):
-        pass
-        # """
-        # Updates a class partially.
-        # """
-        # return super().partial_update(request, *args, **kwargs)
+        """
+        Updates a class partially.
+        """
+        return super().partial_update(request, *args, **kwargs)
     
     
     @swagger_auto_schema(
@@ -204,11 +200,10 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     def destroy(self, request, *args, **kwargs):
-        pass
-        # """
-        # Deletes a class by class id as path parameter.
-        # """
-        # return super().destroy(request, *args, **kwargs)
+        """
+        Deletes a class by class id as path parameter.
+        """
+        return super().destroy(request, *args, **kwargs)
     
     @swagger_auto_schema(
         method='POST',
@@ -225,23 +220,22 @@ class ClassRoomsController(viewsets.GenericViewSet,
     )
     @action(methods=['POST'], detail=False, url_name='join')
     def join(self, request, *args, **kwargs):
-        pass
-        # """
-        # Joins a class by class code as request body.
-        # """
-        # class_code = request.data['class_code']
-        # try:
-        #     # check if user is already a member of the class
-        #     class_member = ClassMember.objects.filter(user_id=request.user, class_id__class_code=class_code)
-        #     if class_member:
-        #         return Response({'details': 'You are already a member of this class'})
+        """
+        Joins a class by class code as request body.
+        """
+        class_code = request.data['class_code']
+        try:
+            # check if user is already a member of the class
+            class_member = ClassMember.objects.filter(user_id=request.user, class_id__class_code=class_code)
+            if class_member:
+                return Response({'details': 'You are already a member of this class'})
             
-        #     class_to_join = ClassRoom.objects.get(class_code=class_code)
-        #     class_member = ClassMember.objects.create(
-        #         user_id=request.user,
-        #         class_id=class_to_join
-        #     )
-        #     class_member.save()
-        #     return Response({'details': 'Successfully joined class'}, status=status.HTTP_200_OK)
-        # except ClassRoom.DoesNotExist:
-        #     return Response({'error': 'Invalid class code'}, status=status.HTTP_400_BAD_REQUEST)
+            class_to_join = ClassRoom.objects.get(class_code=class_code)
+            class_member = ClassMember.objects.create(
+                user_id=request.user,
+                class_id=class_to_join
+            )
+            class_member.save()
+            return Response({'details': 'Partially joined class'}, status=status.HTTP_200_OK)
+        except ClassRoom.DoesNotExist:
+            return Response({'error': 'Invalid class code'}, status=status.HTTP_400_BAD_REQUEST)
