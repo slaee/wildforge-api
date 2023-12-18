@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         # set default values
         extra_kwargs = {
-            'role': {'default': User.BASIC, 'read_only': True, 'required': False},
+            'role': {'default': User.BASIC, 'required': False},
             'password': {'write_only': True}
         }
 

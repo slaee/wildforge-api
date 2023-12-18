@@ -5,11 +5,11 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
 
+from api.custom_permissions import IsModerator
+from api.custom_permissions import IsBasic
+
 from api.models import ClassRoom
-from api.models import ClassMember
 from api.serializers import ClassRoomSerializer
-from api.serializers import UserSerializer
-from api.serializers import SuperUserSerializer
 from api.serializers import JoinClassRoomSerializer
 
 class ClassRoomsController(viewsets.GenericViewSet,
@@ -23,16 +23,10 @@ class ClassRoomsController(viewsets.GenericViewSet,
     authentication_classes = [JWTAuthentication]
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        If the action is 'create', 'destroy', 'update', or 'partial_update', only allow admin users to access.
-        If the action is 'retrieve', 'list', or 'join', only allow authenticated users to access.
-        otherwise, return 403 Forbidden.
-        """
         if self.action in ['create','destroy', 'update', 'partial_update']:
-            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+            return [permissions.IsAuthenticated(), IsModerator()]
         elif self.action in ['retrieve', 'list', 'join']:
-            return [permissions.IsAuthenticated()]
+            return [permissions.IsAuthenticated(), IsModerator() or IsBasic()]
         return super().get_permissions()
     
 

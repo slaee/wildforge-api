@@ -1,3 +1,4 @@
+from uuid import uuid4
 from rest_framework import serializers
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 
@@ -26,6 +27,12 @@ class ClassRoomSerializer(serializers.ModelSerializer):
         view_name='class-class-members-list',
         parent_lookup_kwargs={'class_pk': 'class_id'}
     )
+
+    def create(self, validated_data):
+        class_room = ClassRoom.objects.create(**validated_data)
+        class_room.class_code = uuid4().hex[:8].upper()
+        class_room.save()
+        return class_room
 
             
 class JoinClassRoomSerializer(serializers.Serializer):
