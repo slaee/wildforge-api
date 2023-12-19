@@ -125,6 +125,8 @@ class ClassMembersController(viewsets.GenericViewSet,
                 teammember = teammember.first()
                 if teammember.role == TeamMember.LEADER and teammember.status == TeamMember.ACCEPTED:
                     return Response({'error': 'Class member is already a team leader'}, status=status.HTTP_400_BAD_REQUEST)
+                if teammember.role == TeamMember.LEADER and teammember.status == TeamMember.PENDING:
+                    return Response({'error': 'Class member is already a pending team leader'}, status=status.HTTP_400_BAD_REQUEST)
             
             # create a new team member with role as leader and status as pending
             team_leader = TeamMember.objects.create(
