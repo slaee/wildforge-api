@@ -11,13 +11,10 @@ from api.models import Team
 from api.models import TeamMember
 from api.models import ClassMember
 from api.models import ClassRoom
-from api.models import Request
 
 from api.serializers import TeamSerializer
 from api.serializers import NoneSerializer
 from api.serializers import TeamMemberSerializer
-from api.serializers import RequestSerializer
-
 class TeamsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
                       mixins.CreateModelMixin,
@@ -281,56 +278,7 @@ class TeamsController(viewsets.GenericViewSet,
             return Response({"error": "Team does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except:
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    # ENDPOINT TO REQUEST TO JOIN A TEAM
-    @swagger_auto_schema(
-        operation_summary="Request to join a team",
-        operation_description="POST /teams/{id}/request",
-        responses={
-            status.HTTP_200_OK: openapi.Response('OK', TeamSerializer),
-            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
-            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
-            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
-            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
-            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
-        }
-    )
-    @action(detail=True, methods=['post'])
-    def request(self, request, *args, **kwargs):
-        pass
-        # team = self.get_object()
-        
-        # # Check if the recruitment status is 2 (hiring is open)
-        # if team.recruitment_status != 2:
-        #     return Response({"detail": "Hiring is not open for this team."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # # Check if the status is 1 (active team)
-        # if team.status != 1:
-        #     return Response({"detail": "This team is not active."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # # Check if the current number of team members is less than max_members
-        # current_members_count = TeamMember.objects.filter(team_id=team, status='accepted').count()
-        # if current_members_count >= team.max_members:
-        #     return Response({"detail": "The team has reached the maximum number of members."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # # Check if the user is already a member of the team
-        # if TeamMember.objects.filter(team_id=team, user_id=request.user, status='accepted').exists():
-        #     return Response({"detail": "You are already a member of this team."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # # Check if the user has already applied to the team
-        # if TeamMember.objects.filter(team_id=team, user_id=request.user, status='pending').exists():
-        #     return Response({"detail": "You have already applied to this team."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # # If all conditions are met, create a team member with status pending
-        # team_member = TeamMember.objects.create(
-        #     user_id=request.user,
-        #     team_id=team,
-        #     role='tm',
-        #     status='pending'
-        # )
-        # team_member.save()
-        # serializer = TeamSerializer(team)
-        # return Response(serializer.data)
 
     
 
