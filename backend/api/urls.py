@@ -15,11 +15,14 @@ router.register(r'classes', ClassRoomsController, basename='class')
 
 classes_router = routers.NestedSimpleRouter(router, r'classes', lookup='class')
 classes_router.register(r'members', ClassMembersController, basename='class-members')
-
 classes_router.register(r'teams', TeamsController, basename='class-teams')
+
+team_members = routers.NestedSimpleRouter(classes_router, r'teams', lookup='team')
+team_members.register(r'members', TeamMembersController, basename='team-members')
 
 urlpatterns = router.urls
 urlpatterns += classes_router.urls
+urlpatterns += team_members.urls
 
 urlpatterns += [
     path('tokens/', include([
