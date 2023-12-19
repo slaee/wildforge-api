@@ -7,7 +7,6 @@ from rest_framework.response import Response
 
 from api.custom_permissions import IsTeamLeader
 
-from api.models import Team
 from api.models import User
 from api.models import TeamMember
 
@@ -15,8 +14,7 @@ from api.serializers import TeamMemberSerializer
 from api.serializers import NoneSerializer
 
 class TeamMembersController(viewsets.GenericViewSet,
-                      mixins.ListModelMixin, 
-                      mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
                       mixins.RetrieveModelMixin):
     queryset = TeamMember.objects.all()
     serializer_class = TeamMemberSerializer
@@ -29,9 +27,9 @@ class TeamMembersController(viewsets.GenericViewSet,
         If the action is 'retrieve', 'list', or 'join', only allow authenticated users to access.
         otherwise, return 403 Forbidden.
         """
-        if self.action in ['create','remove', 'accept']:
+        if self.action in ['remove', 'accept']:
             return [permissions.IsAuthenticated(), IsTeamLeader()]
-        elif self.action in ['retrieve', 'list', 'join']:
+        elif self.action in ['retrieve', 'list']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
     
