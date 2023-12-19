@@ -131,7 +131,6 @@ class TeamMembersController(viewsets.GenericViewSet,
     @action(detail=True, methods=['PUT'])
     def accept(self, request, *args, **kwargs):
         try:
-            print('>>>>>>>>> HERE')
             pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
             pending_team_member.status = TeamMember.ACCEPTED
             pending_team_member.save()
