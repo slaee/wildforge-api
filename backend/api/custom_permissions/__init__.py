@@ -4,3 +4,4 @@ from .classroom_permissions import IsStudent
 from .classroom_permissions import IsTeacher
 from .team_permissions import IsTeamLeader
 from .team_permissions import IsTeamMember
+from .team_permissions import IsTeamLeaderOrTeacher

@@ -5,10 +5,11 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
 
-from api.custom_permissions import IsTeamLeader
+from api.custom_permissions import IsTeamLeaderOrTeacher
 
 from api.models import User
 from api.models import TeamMember
+from api.models import ClassMember
 
 from api.serializers import TeamMemberSerializer
 from api.serializers import NoneSerializer
@@ -28,8 +29,8 @@ class TeamMembersController(viewsets.GenericViewSet,
         otherwise, return 403 Forbidden.
         """
         if self.action in ['remove', 'accept']:
-            return [permissions.IsAuthenticated(), IsTeamLeader()]
-        elif self.action in ['retrieve', 'list']:
+            return [permissions.IsAuthenticated(), IsTeamLeaderOrTeacher()]
+        elif self.action in ['retrieve', 'list', 'leave']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
     
@@ -49,8 +50,10 @@ class TeamMembersController(viewsets.GenericViewSet,
             team_members = TeamMember.objects.filter(team_id=kwargs['team_pk']).all()
             serializer = TeamMemberSerializer(team_members, many=True).data
 
+            
             for team_member in serializer:
-                user = User.objects.get(id=team_member['user_id'])
+                classmember = ClassMember.objects.get(id=team_member['class_member_id'])
+                user = User.objects.get(id=classmember.user_id.id)
                 team_member['first_name'] = user.first_name
                 team_member['last_name'] = user.last_name
             
@@ -78,6 +81,36 @@ class TeamMembersController(viewsets.GenericViewSet,
             team_member.delete()
 
             return Response({'detail': 'Team Member removed from team'}, status=status.HTTP_200_OK)
+        except TeamMember.DoesNotExist:
+            return Response({'error': 'Team Member does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @swagger_auto_schema(
+        operation_summary="Leave from the team",
+        operation_description="DELETE /teams/{team_pk}/members/{id}/leave",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', TeamMemberSerializer),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['DELETE'])
+    def leave(self, request, *args, **kwargs):
+        try:
+            # get current user
+            user = request.user
+            current_class_member = ClassMember.objects.get(class_id=kwargs['class_pk'], user_id=user)
+            team_member = TeamMember.objects.get(class_member_id=current_class_member)
+
+            if int(kwargs['pk']) != team_member.id:
+                return Response({'error': 'You cannot do this. OK?'}, status=403)
+
+            team_member.delete()
+
+            return Response({'detail': 'Succesfully leaved team'}, status=status.HTTP_200_OK)
         except TeamMember.DoesNotExist:
             return Response({'error': 'Team Member does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         except:

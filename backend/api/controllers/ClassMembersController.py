@@ -98,9 +98,9 @@ class ClassMembersController(viewsets.GenericViewSet,
             return Response({'error': 'Class member does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         
     @swagger_auto_schema(
-        method='POST',
+        method='PUT',
         operation_summary="Sets a class member as a team leader",
-        operation_description="POST /classes/{class_pk}/members/{id}/setleader", request_body=None,
+        operation_description="PUT /classes/{class_pk}/members/{id}/setleader", request_body=None,
         responses={
             status.HTTP_200_OK: openapi.Response('Class member is now a pending team leader.'),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -109,7 +109,7 @@ class ClassMembersController(viewsets.GenericViewSet,
             status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
         }
     )
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['PUT'])
     def setleader(self, request, *args, **kwargs):
         try:
             # get the class member by id 
