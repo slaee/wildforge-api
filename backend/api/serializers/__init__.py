@@ -22,3 +22,4 @@ from .TeamMemberSerializer import TeamMemberSerializer
 from .ClassRoomPESerializer import ClassRoomPESerializer
 
 from .PeerEvalSerializer import PeerEvalSerializer
+from .PeerEvalSerializer import AssignPeerEvalSerializer

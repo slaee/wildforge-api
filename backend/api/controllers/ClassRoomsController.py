@@ -9,10 +9,14 @@ from api.custom_permissions import IsModerator
 
 from api.models import ClassRoom
 from api.models import ClassMember
+from api.models import PeerEval
+from api.models import ClassRoomPE
+
 from api.serializers import ClassRoomSerializer
 from api.serializers import JoinClassRoomSerializer
 from api.serializers import UserSerializer
 from api.serializers import SuperUserSerializer
+from api.serializers import PeerEvalSerializer
 
 class ClassRoomsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -241,3 +245,30 @@ class ClassRoomsController(viewsets.GenericViewSet,
             return Response({'details': 'Partially joined class'}, status=status.HTTP_200_OK)
         except ClassRoom.DoesNotExist:
             return Response({'error': 'Invalid class code'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Lists all peer evals of a class",
+        operation_description="GET /classes/{id}/evals",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK', ClassRoomSerializer(many=True)),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['GET'])
+    def evals(self, request, *args, **kwargs):
+        try:
+            class_id = kwargs['pk']
+            class_room_pe = ClassRoomPE.objects.filter(class_id=class_id)
+            evals = PeerEval.objects.filter(id__in=class_room_pe.values('peer_eval_id'))
+            serializer = PeerEvalSerializer(evals, many=True).data
+
+            return Response(serializer, status=status.HTTP_200_OK)
+        except ClassRoom.DoesNotExist:
+            return Response({'details': 'Class not found'}, status=status.HTTP_404_NOT_FOUND)
+        except PeerEval.DoesNotExist:
+            return Response({'details': 'Peer eval not found'}, status=status.HTTP_404_NOT_FOUND)
+        except:
+            return Response({'details': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -5,5 +5,3 @@ class ClassRoomPE(models.Model):
     class_id = models.ForeignKey('ClassRoom', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now=True)
     date_updated = models.DateTimeField(auto_now=True)
-
-    REQUIRED_FIELDS = ['peer_eval_id', 'class_id']
