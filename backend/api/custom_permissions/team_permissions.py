@@ -1,12 +1,19 @@
 from rest_framework.permissions import BasePermission
 
 from api.models import TeamMember
+from api.models import ClassMember
 
 class IsTeamLeader(BasePermission):
     def has_permission(self, request, view):
-        return request.teammeber.role == TeamMember.LEADER
+        user = request.user
+        classmember = ClassMember.objects.get(class_id=view.kwargs['class_pk'], user_id=user)
+        teammember = TeamMember.objects.get(class_member_id=classmember)
+        return teammember.role == TeamMember.LEADER
 
 class IsTeamMember(BasePermission):
     def has_permission(self, request, view):
-        return request.teammeber.role == TeamMember.MEMBER
+        user = request.user
+        classmember = ClassMember.objects.get(class_id=view.kwargs['class_pk'], user_id=user)
+        teammember = TeamMember.objects.get(class_member_id=classmember)
+        return teammember.role == TeamMember.MEMBER
     

@@ -17,8 +17,6 @@ class RequestSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'sender_id': {'read_only': True, 'required': False},
             'receiver_id': {'read_only': True, 'required': False},
-            'message': {'read_only': True, 'required': False},
-            'request_type': {'read_only': True, 'required': False},
             'status': {'read_only': True, 'required': False},
         }
 
