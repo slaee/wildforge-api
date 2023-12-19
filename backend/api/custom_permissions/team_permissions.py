@@ -5,15 +5,20 @@ from api.models import ClassMember
 
 class IsTeamLeader(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
-        classmember = ClassMember.objects.get(class_id=view.kwargs['class_pk'], user_id=user)
-        teammember = TeamMember.objects.get(class_member_id=classmember)
-        return teammember.role == TeamMember.LEADER
+        try:
+            user = request.user
+            classmember = ClassMember.objects.get(class_id=view.kwargs['class_pk'], user_id=user)
+            teammember = TeamMember.objects.get(class_member_id=classmember)
+            return teammember.role == TeamMember.LEADER
+        except:
+            return False
 
 class IsTeamMember(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
-        classmember = ClassMember.objects.get(class_id=view.kwargs['class_pk'], user_id=user)
-        teammember = TeamMember.objects.get(class_member_id=classmember)
-        return teammember.role == TeamMember.MEMBER
-    
+        try:
+            user = request.user
+            classmember = ClassMember.objects.get(class_id=view.kwargs['class_pk'], user_id=user)
+            teammember = TeamMember.objects.get(class_member_id=classmember)
+            return teammember.role == TeamMember.MEMBER
+        except:
+            return False
