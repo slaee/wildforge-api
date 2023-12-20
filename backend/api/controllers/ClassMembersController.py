@@ -176,8 +176,20 @@ class ClassMembersController(viewsets.GenericViewSet,
         except:
             # return Internal Server Error if something went wrong
             return Response({'error': 'Something went wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
 
+    @swagger_auto_schema(
+        method='DELETE',
+        operation_summary="Removes a team leader",
+        operation_description="DELETE /classes/{class_pk}/members/{id}/removeasleader", request_body=None,
+        responses={
+            status.HTTP_202_ACCEPTED: openapi.Response('Accepted'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )    
+    @action(detail=True, methods=['DELETE'])
     def removeasleader(self, request, *args, **kwargs):
         try:
             # get the class member by id 
@@ -192,7 +204,7 @@ class ClassMembersController(viewsets.GenericViewSet,
                 return Response({'error': 'Class member is not a team leader'}, status=status.HTTP_400_BAD_REQUEST)
             
             teammember.delete()
-            
+
             return Response({'detail': 'Team leader removed.'}, status=status.HTTP_202_ACCEPTED)
         except ClassMember.DoesNotExist:
             return Response({'error': 'Class member does not exist'}, status=status.HTTP_404_NOT_FOUND)
