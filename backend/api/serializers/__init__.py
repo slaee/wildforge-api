@@ -19,8 +19,7 @@ from .TeamSerializer import TeamSerializer
 
 from .TeamMemberSerializer import TeamMemberSerializer
 
-from .RequestSerializer import RequestSerializer
-
 from .ClassRoomPESerializer import ClassRoomPESerializer
 
 from .PeerEvalSerializer import PeerEvalSerializer
+from .PeerEvalSerializer import AssignPeerEvalSerializer

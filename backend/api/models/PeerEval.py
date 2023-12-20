@@ -6,3 +6,5 @@ class PeerEval(models.Model):
 
     date_created = models.DateTimeField(auto_now=True)
     date_updated = models.DateTimeField(auto_now=True)
+
+    REQUIRED_FIELDS = ['name', 'forms_link']

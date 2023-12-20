@@ -28,8 +28,10 @@ class UsersController(viewsets.GenericViewSet,
 
         if self.action == 'create':
             return [permissions.AllowAny()]
-        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+        elif self.action in ['retrieve', 'update', 'partial_update']:
             return [permissions.IsAuthenticated()]
+        elif self.action in ['destroy']:
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
         return super().get_permissions()
 
 

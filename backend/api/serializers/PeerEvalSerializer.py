@@ -12,3 +12,8 @@ class PeerEvalSerializer(serializers.ModelSerializer):
             'date_created': 'Date Created',
             'date_updated': 'Date Updated',
         }
+
+class AssignPeerEvalSerializer(serializers.Serializer):
+    classrooms = serializers.ListField(
+        child=serializers.IntegerField()
+    )
