@@ -176,3 +176,27 @@ class ClassMembersController(viewsets.GenericViewSet,
         except:
             # return Internal Server Error if something went wrong
             return Response({'error': 'Something went wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+    def removeasleader(self, request, *args, **kwargs):
+        try:
+            # get the class member by id 
+            class_member = ClassMember.objects.get(id=kwargs['pk'])
+            
+            # check if class member is accepted
+            if class_member.status != ClassMember.ACCEPTED:
+                return Response({'error': 'Class member is not accepted yet'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            teammember = TeamMember.objects.get(class_member_id=class_member)
+            if teammember.role != TeamMember.LEADER:
+                return Response({'error': 'Class member is not a team leader'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            teammember.delete()
+            
+            return Response({'detail': 'Team leader removed.'}, status=status.HTTP_202_ACCEPTED)
+        except ClassMember.DoesNotExist:
+            return Response({'error': 'Class member does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except TeamMember.DoesNotExist:
+            return Response({'error': 'Class member is not a team leader'}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error': 'Something went wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
