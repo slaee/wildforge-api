@@ -29,8 +29,29 @@ SECRET_KEY = 'django-insecure-(pzk9w5d45r1%hw3@ys^$q(+9vt6froa&o#pw04g@y+96ab!3@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0']
+# DB_NAME = os.getenv('DB_NAME')
+# DB_USER = os.getenv('DB_USER')
+# DB_PASSWORD = os.getenv('DB_PASSWORD')
+# DB_HOST = os.getenv('DB_HOST')
+# DB_PORT = os.getenv('DB_PORT')
 
+# LOCAL_HOST = os.getenv('LOCAL_HOST')
+
+# use environment variables from /backend/env/backend.env
+load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
+
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = '0.0.0.0'
+DB_PORT = os.getenv('DB_PORT')
+
+LOCAL_HOST = os.getenv('LOCAL_HOST')
+
+# Set the allowed hosts here to prevent host header attacks
+ALLOWED_HOSTS = ['0.0.0.0', LOCAL_HOST]
+
+APPEND_SLASH = False
 
 # Application definition
 
@@ -55,7 +76,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -83,7 +104,7 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=60),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 
     "TOKEN_OBTAIN_SERIALIZER": "wildforge_api.serializers.AuthTokenObtainPairSerializer",
@@ -104,6 +125,17 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',                     # CORS
 ]
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'LOGIN_URL': 'http://0.0.0.0:8000/tokens/acquire/',
+}
 
 ROOT_URLCONF = 'wildforge.urls'
 
@@ -129,20 +161,6 @@ WSGI_APPLICATION = 'wildforge.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DB_NAME = os.environ.get('DB_NAME')
-# DB_USER = os.environ.get('DB_USER')
-# DB_PASSWORD = os.environ.get('DB_PASSWORD')
-# DB_HOST = os.environ.get('DB_HOST')
-# DB_PORT = os.environ.get('DB_PORT')
-
-# use environment variables from /backend/env/backend.env
-load_dotenv(dotenv_path=API_REPO_DIR / 'env' / 'backend.env')
-
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
 
 DATABASES = {
     'default': {
