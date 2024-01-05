@@ -240,3 +240,34 @@ class ClassMembersController(viewsets.GenericViewSet,
             return Response({'error': 'Class member is not a team leader'}, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({'error': 'Something went wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary="GETs a classmembers team member role",
+        operation_description="GET /classes/{class_pk}/members/{id}/teamrole", request_body=None,
+        responses={
+            status.HTTP_202_ACCEPTED: openapi.Response('Accepted'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )   
+    @action(detail=True, methods=['GET'])
+    def teamrole(self, request, *args, **kwargs):
+        try:
+            class_member = ClassMember.objects.get(id=kwargs['pk'])
+
+            # check if class member is accepted
+            if class_member.status != ClassMember.ACCEPTED:
+                return Response({'error': 'Class member is not accepted yet'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            teammember = TeamMember.objects.get(class_member_id=class_member)
+
+            return Response({'role': teammember.role}, status=status.HTTP_200_OK)
+        except ClassMember.DoesNotExist:
+            return Response({'error': 'Class member does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except TeamMember.DoesNotExist:
+            return Response({'error': 'Class member does not have a team.'}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error': 'Something went wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
