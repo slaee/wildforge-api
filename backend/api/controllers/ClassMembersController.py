@@ -11,6 +11,7 @@ from api.models import User
 from api.models import ClassMember
 from api.models import TeamMember
 from api.serializers import ClassMemberSerializer
+from api.serializers import TeamMemberSerializer
 
 class ClassMembersController(viewsets.GenericViewSet,
                         mixins.RetrieveModelMixin,
@@ -263,8 +264,10 @@ class ClassMembersController(viewsets.GenericViewSet,
                 return Response({'error': 'Class member is not accepted yet'}, status=status.HTTP_400_BAD_REQUEST)
             
             teammember = TeamMember.objects.get(class_member_id=class_member)
+            serializer = TeamMemberSerializer(teammember).data
+            
 
-            return Response({'role': teammember.role}, status=status.HTTP_200_OK)
+            return Response(serializer, status=status.HTTP_200_OK)
         except ClassMember.DoesNotExist:
             return Response({'error': 'Class member does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except TeamMember.DoesNotExist:
