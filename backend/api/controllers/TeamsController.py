@@ -11,6 +11,7 @@ from api.models import Team
 from api.models import TeamMember
 from api.models import ClassMember
 from api.models import ClassRoom
+from api.models import User
 
 from api.serializers import TeamSerializer
 from api.serializers import NoneSerializer
@@ -114,7 +115,14 @@ class TeamsController(viewsets.GenericViewSet,
         response = super().list(request, *args, **kwargs)
         for team in response.data:
             team_members = TeamMember.objects.filter(team_id=team['id'])
-            team['team_members'] = TeamMemberSerializer(team_members, many=True).data
+            team_members_serializer = TeamMemberSerializer(team_members, many=True).data
+            for team_member in team_members_serializer:
+                class_member = ClassMember.objects.get(id=team_member['class_member_id'])
+                user = User.objects.get(id=class_member.user_id.id)
+                team_member['first_name'] = user.first_name
+                team_member['last_name'] = user.last_name
+
+            team['team_members'] = team_members_serializer
         return response
     
     @swagger_auto_schema(

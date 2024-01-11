@@ -32,7 +32,7 @@ class ClassMembersController(viewsets.GenericViewSet,
         """
         if self.action in ['destroy', 'accept', 'setleader']:
             return [permissions.IsAuthenticated(), IsModerator()]
-        elif self.action in ['list', 'acceptasleader', 'retrieve']:
+        elif self.action in ['list', 'acceptasleader', 'retrieve', 'team']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
@@ -276,6 +276,12 @@ class ClassMembersController(viewsets.GenericViewSet,
                 team_serializer = TeamSerializer(team).data
                 team_members = TeamMember.objects.filter(team_id=team.id).all()
                 team_members_serializer = TeamMemberSerializer(team_members, many=True).data
+                for team_member in team_members_serializer:
+                    classmember = ClassMember.objects.get(id=team_member['class_member_id'])
+                    user = User.objects.get(id=classmember.user_id.id)
+                    team_member['first_name'] = user.first_name
+                    team_member['last_name'] = user.last_name
+
                 team_serializer['members'] = team_members_serializer
                 data.append(team_serializer)
 
