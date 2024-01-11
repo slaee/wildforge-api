@@ -10,8 +10,10 @@ from api.custom_permissions import IsModerator
 from api.models import User
 from api.models import ClassMember
 from api.models import TeamMember
+from api.models import Team
 from api.serializers import ClassMemberSerializer
 from api.serializers import TeamMemberSerializer
+from api.serializers import TeamSerializer
 
 class ClassMembersController(viewsets.GenericViewSet,
                         mixins.RetrieveModelMixin,
@@ -244,8 +246,8 @@ class ClassMembersController(viewsets.GenericViewSet,
 
     @swagger_auto_schema(
         method='GET',
-        operation_summary="GETs a classmembers team member role",
-        operation_description="GET /classes/{class_pk}/members/{id}/teamrole", request_body=None,
+        operation_summary="GETs a classmembers team",
+        operation_description="GET /classes/{class_pk}/members/{id}/team", request_body=None,
         responses={
             status.HTTP_202_ACCEPTED: openapi.Response('Accepted'),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -255,7 +257,7 @@ class ClassMembersController(viewsets.GenericViewSet,
         }
     )   
     @action(detail=True, methods=['GET'])
-    def teamrole(self, request, *args, **kwargs):
+    def team(self, request, *args, **kwargs):
         try:
             class_member = ClassMember.objects.get(id=kwargs['pk'])
 
@@ -263,11 +265,21 @@ class ClassMembersController(viewsets.GenericViewSet,
             if class_member.status != ClassMember.ACCEPTED:
                 return Response({'error': 'Class member is not accepted yet'}, status=status.HTTP_400_BAD_REQUEST)
             
-            teammember = TeamMember.objects.get(class_member_id=class_member)
-            serializer = TeamMemberSerializer(teammember).data
-            
+            data = []
 
-            return Response(serializer, status=status.HTTP_200_OK)
+            teammember = TeamMember.objects.get(class_member_id=class_member)
+            teammember_serializer = TeamMemberSerializer(teammember).data
+            data.append(teammember_serializer)
+
+            if teammember.team_id is not None:
+                team = Team.objects.get(id=teammember.team_id.id)
+                team_serializer = TeamSerializer(team).data
+                team_members = TeamMember.objects.filter(team_id=team.id).all()
+                team_members_serializer = TeamMemberSerializer(team_members, many=True).data
+                team_serializer['members'] = team_members_serializer
+                data.append(team_serializer)
+
+            return Response(data, status=status.HTTP_200_OK)
         except ClassMember.DoesNotExist:
             return Response({'error': 'Class member does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except TeamMember.DoesNotExist:
