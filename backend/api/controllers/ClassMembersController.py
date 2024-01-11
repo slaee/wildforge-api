@@ -32,7 +32,7 @@ class ClassMembersController(viewsets.GenericViewSet,
         """
         if self.action in ['destroy', 'accept', 'setleader']:
             return [permissions.IsAuthenticated(), IsModerator()]
-        elif self.action in ['list', 'acceptasleader', 'retrieve']:
+        elif self.action in ['list', 'acceptasleader', 'retrieve', 'team']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
