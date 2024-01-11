@@ -34,7 +34,7 @@ class ClassRoomsController(viewsets.GenericViewSet,
     authentication_classes = [JWTAuthentication]
 
     def get_permissions(self):
-        if self.action in ['create','destroy', 'update', 'partial_update',]:
+        if self.action in ['create','destroy', 'update', 'partial_update','nonleaders','leaders']:
             return [permissions.IsAuthenticated(), IsModerator()]
         elif self.action in ['retrieve', 'list', 'join']:
             return [permissions.IsAuthenticated()]
@@ -252,8 +252,8 @@ class ClassRoomsController(viewsets.GenericViewSet,
             return Response({'error': 'Invalid class code'}, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        operation_summary="Lists all noneleaders of a class",
-        operation_description="GET /classes/{id}/noneleaders",
+        operation_summary="Lists all nonleaders of a class",
+        operation_description="GET /classes/{id}/nonleaders",
         responses={
             status.HTTP_200_OK: openapi.Response('OK'),
             status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
@@ -263,7 +263,7 @@ class ClassRoomsController(viewsets.GenericViewSet,
         }
     )
     @action(detail=True, methods=['GET'])
-    def noneleaders(self, request, *args, **kwargs):
+    def nonleaders(self, request, *args, **kwargs):
         try:
             class_id = kwargs['pk']
 
