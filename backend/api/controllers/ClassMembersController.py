@@ -159,9 +159,14 @@ class ClassMembersController(viewsets.GenericViewSet,
                 teammember = teammember.first()
                 if teammember.role == TeamMember.LEADER and teammember.status == TeamMember.ACCEPTED:
                     return Response({'error': 'Class member is already a team leader'}, status=status.HTTP_400_BAD_REQUEST)
-                if teammember.role == TeamMember.LEADER and teammember.status == TeamMember.PENDING:
+                elif teammember.role == TeamMember.LEADER and teammember.status == TeamMember.PENDING:
                     return Response({'error': 'Class member is already a pending team leader'}, status=status.HTTP_400_BAD_REQUEST)
-            
+                elif teammember.role == TeamMember.MEMBER and teammember.status == TeamMember.ACCEPTED:
+                    # update the team member role to leader
+                    teammember.role = TeamMember.LEADER
+                    teammember.save()
+                    return Response({'detail': 'Class member is now a team leader.'}, status=status.HTTP_200_OK)
+                
             # create a new team member with role as leader and status as pending
             team_leader = TeamMember.objects.create(
                 class_member_id=class_member, 
