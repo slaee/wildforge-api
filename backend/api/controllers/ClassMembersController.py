@@ -6,6 +6,7 @@ from drf_yasg import openapi
 from rest_framework.response import Response
 
 from api.custom_permissions import IsModerator
+from api.custom_permissions import IsTeamLeaderOrTeacher
 
 from api.models import User
 from api.models import ClassMember
@@ -30,9 +31,11 @@ class ClassMembersController(viewsets.GenericViewSet,
         If the action is 'list', only allow authenticated users to access.
         otherwise, return 403 Forbidden.
         """
-        if self.action in ['destroy', 'accept', 'setleader']:
+        if self.action in ['destroy', 'accept']:
             return [permissions.IsAuthenticated(), IsModerator()]
-        elif self.action in ['list', 'acceptasleader', 'retrieve', 'team']:
+        elif self.action in ['setleader', 'removeasleader', 'acceptasleader']:
+            return [permissions.IsAuthenticated(), IsTeamLeaderOrTeacher()]
+        elif self.action in ['list', 'retrieve', 'team']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
