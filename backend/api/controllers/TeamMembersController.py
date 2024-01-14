@@ -138,7 +138,7 @@ class TeamMembersController(viewsets.GenericViewSet,
 
             # count team members if it is full
             team_members_count = TeamMember.objects.filter(team_id=kwargs['team_pk']).count()
-            if classroom.max_teams_members <= team_members_count:
+            if  team_members_count <= classroom.max_teams_members:
                 pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
                 pending_team_member.status = TeamMember.ACCEPTED
                 pending_team_member.save()
