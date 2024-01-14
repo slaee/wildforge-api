@@ -137,15 +137,20 @@ class TeamMembersController(viewsets.GenericViewSet,
             team = Team.objects.get(id=kwargs['team_pk'])
 
             # count team members if it is full
-            team_members_count = TeamMember.objects.filter(team_id=kwargs['team_pk']).count()
-            if  team_members_count <= classroom.max_teams_members:
+            team_members_count = TeamMember.objects.filter(team_id=kwargs['team_pk'], status=TeamMember.ACCEPTED).count()
+            if (team_members_count + 1) == classroom.max_teams_members:
                 pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
                 pending_team_member.status = TeamMember.ACCEPTED
                 pending_team_member.save()
 
-                # update the status of the team to closed
                 team.status = Team.CLOSE
                 team.save()
+
+                return Response(TeamMemberSerializer(pending_team_member).data, status=status.HTTP_200_OK)
+            elif team_members_count < classroom.max_teams_members:
+                pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
+                pending_team_member.status = TeamMember.ACCEPTED
+                pending_team_member.save()
 
                 return Response(TeamMemberSerializer(pending_team_member).data, status=status.HTTP_200_OK)
             else:
