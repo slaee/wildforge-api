@@ -9,10 +9,13 @@ from api.custom_permissions import IsModerator
 
 from api.models import PeerEval
 from api.models import ClassRoom
+from api.models import ClassMember
 from api.models import ClassRoomPE
 from api.models import ClassRoomPETaker
 from api.serializers import PeerEvalSerializer
 from api.serializers import AssignPeerEvalSerializer
+from api.serializers import ClassRoomPESerializer
+from api.serializers import ClassRoomPETakerSerializer
 
 class PeerEvalsController (viewsets.GenericViewSet,
                         mixins.ListModelMixin, 
@@ -24,18 +27,18 @@ class PeerEvalsController (viewsets.GenericViewSet,
     serializer_class = PeerEvalSerializer
     authentication_classes = [JWTAuthentication]
 
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        If the action is 'destroy', only allow admin users to access.
-        If the action is 'list', only allow authenticated users to access.
-        otherwise, return 403 Forbidden.
-        """
-        if self.action in ['create', 'destroy', 'assign']:
-            return [permissions.IsAuthenticated(), IsModerator()]
-        elif self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
-        return super().get_permissions()
+    # def get_permissions(self):
+    #     """
+    #     Instantiates and returns the list of permissions that this view requires.
+    #     If the action is 'destroy', only allow admin users to access.
+    #     If the action is 'list', only allow authenticated users to access.
+    #     otherwise, return 403 Forbidden.
+    #     """
+    #     if self.action in ['create', 'destroy', 'assign']:
+    #         return [permissions.IsAuthenticated(), IsModerator()]
+    #     elif self.action in ['list', 'retrieve']:
+    #         return [permissions.IsAuthenticated()]
+    #     return super().get_permissions()
     
     @swagger_auto_schema(
         operation_summary="Lists all peer evals",
@@ -49,7 +52,26 @@ class PeerEvalsController (viewsets.GenericViewSet,
         }
     )
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        # join ClassroomPE and ClassroomPETaker
+        # get all peer evals
+
+        peer_evals = PeerEval.objects.all()
+        serializer = PeerEvalSerializer(peer_evals, many=True).data
+
+        for i in range(len(serializer)):
+            serializer[i]['assigned_classes'] = []
+            class_room_pes = ClassRoomPE.objects.filter(peer_eval_id=serializer[i]['id'])
+            for class_room_pe in class_room_pes:
+                class_room = ClassRoom.objects.get(id=class_room_pe.class_id.id)
+                serializer[i]['assigned_classes'].append({
+                    'id': class_room.id,
+                    'name': class_room.course_name,
+                })
+
+        return Response(serializer, status=status.HTTP_200_OK)
+
+    
+        # return super().list(request, *args, **kwargs)
     
     @swagger_auto_schema(
         operation_summary="Creates a peer eval",
@@ -127,18 +149,63 @@ class PeerEvalsController (viewsets.GenericViewSet,
     def assign(self, request, *args, **kwargs):
         try:
             eval = PeerEval.objects.get(id=kwargs['pk'])
-            # for each classes in request.data, create ClassRoomPE
-            for class_id in request.data['classrooms']:
-                classroom = ClassRoom.objects.get(id=class_id)
-                class_room = ClassRoomPE.objects.create(
-                    peer_eval_id=eval,
-                    class_id=classroom
-                )
-                class_room.save()
-
+            class_id = request.data['class_id']
+            classroom = ClassRoom.objects.get(id=class_id)
+            classroom_pe = ClassRoomPE.objects.create(
+                peer_eval_id=eval,
+                class_id=classroom
+            )
+            classroom_pe.save()
             
-            return Response({'detail': 'Assigned peer eval to classes'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Assigned peer eval to a class'}, status=status.HTTP_200_OK)
         except PeerEval.DoesNotExist:
             return Response({'detail': 'Peer eval does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except:
+            return Response({'detail': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    # get peer eval by assigned classes
+    @swagger_auto_schema(
+        operation_summary="Gets all peer evals assigned to a class",
+        operation_description="GET /evals/assigned/{class_id}/classmember/{cm_id}",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=False, methods=['GET'], url_path='assigned/(?P<class_id>[^/.]+)/classmember/(?P<cm_id>[^/.]+)')
+    def assigned(self, request, class_id, cm_id, *args, **kwargs):
+        try:
+            classroom = ClassRoom.objects.get(id=class_id)
+            classroom_pes = ClassRoomPE.objects.filter(class_id=classroom)
+            classroom_pes_serializer = ClassRoomPESerializer(classroom_pes, many=True).data
+
+            class_member = ClassMember.objects.get(id=cm_id)
+
+            classroom_pe_takers = ClassRoomPETaker.objects.filter(class_member_id=class_member)
+            classroom_pe_takers_serializer = ClassRoomPETakerSerializer(classroom_pe_takers, many=True).data
+
+            peerEvals = []
+
+
+            for classroom_pe in classroom_pes_serializer:
+                peerEval = PeerEval.objects.get(id=classroom_pe['peer_eval_id'])
+                peerEvalSerializer = PeerEvalSerializer(peerEval).data
+
+                if any(pe_taker['class_room_pe_id'] == classroom_pe['id'] for pe_taker in classroom_pe_takers_serializer):
+                    peerEvalSerializer['status'] = ClassRoomPETaker.COMPLETED
+                else:
+                    peerEvalSerializer['status'] = ClassRoomPETaker.PENDING
+
+                peerEvals.append(peerEvalSerializer)
+             
+            return Response(peerEvals, status=status.HTTP_200_OK)
+        except ClassRoom.DoesNotExist:
+            return Response({'detail': 'Class does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
             return Response({'detail': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
