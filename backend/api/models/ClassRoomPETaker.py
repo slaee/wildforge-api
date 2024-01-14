@@ -4,8 +4,6 @@ class ClassRoomPETaker(models.Model):
     class_member_id = models.ForeignKey('ClassMember', on_delete=models.CASCADE)
     class_room_pe_id = models.ForeignKey('ClassRoomPE', on_delete=models.CASCADE)
 
-    data = models.TextField(blank=True, null=True)
-
     PENDING = 0
     COMPLETED = 1
     

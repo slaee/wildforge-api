@@ -20,6 +20,7 @@ from .TeamSerializer import TeamSerializer
 from .TeamMemberSerializer import TeamMemberSerializer
 
 from .ClassRoomPESerializer import ClassRoomPESerializer
+from .ClassRoomPESerializer import ClassRoomPETakerSerializer
 
 from .PeerEvalSerializer import PeerEvalSerializer
 from .PeerEvalSerializer import AssignPeerEvalSerializer
