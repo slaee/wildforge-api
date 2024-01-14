@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import ClassRoomPE, ClassRoom, PeerEval
+from api.models import ClassRoomPE, ClassRoom, PeerEval, ClassRoomPETaker
 
 
 class ClassRoomPESerializer(serializers.ModelSerializer):
@@ -27,3 +27,14 @@ class ClassRoomPESerializer(serializers.ModelSerializer):
         instance = self.Meta.model(**validated_data)
         instance.save()
         return instance
+    
+
+class ClassRoomPETakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassRoomPETaker
+        fields = ['id', 'class_member_id', 'class_room_pe_id', 'status']
+        labels = {
+            'class_member_id': 'Class Member ID',
+            'class_room_pe_id': 'Class Room PE ID',
+            'status': 'Status'
+        }

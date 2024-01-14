@@ -4,6 +4,8 @@ from rest_framework.decorators import action
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
+from django.db.models import F, OuterRef, Subquery, Q
+
 
 from api.custom_permissions import IsModerator
 
@@ -11,12 +13,15 @@ from api.models import ClassRoom
 from api.models import ClassMember
 from api.models import PeerEval
 from api.models import ClassRoomPE
+from api.models import TeamMember
 
 from api.serializers import ClassRoomSerializer
+from api.serializers import ClassMemberSerializer
 from api.serializers import JoinClassRoomSerializer
 from api.serializers import UserSerializer
 from api.serializers import SuperUserSerializer
 from api.serializers import PeerEvalSerializer
+from api.serializers import TeamMemberSerializer
 
 class ClassRoomsController(viewsets.GenericViewSet,
                       mixins.ListModelMixin, 
@@ -29,7 +34,7 @@ class ClassRoomsController(viewsets.GenericViewSet,
     authentication_classes = [JWTAuthentication]
 
     def get_permissions(self):
-        if self.action in ['create','destroy', 'update', 'partial_update']:
+        if self.action in ['create','destroy', 'update', 'partial_update','nonleaders','leaders']:
             return [permissions.IsAuthenticated(), IsModerator()]
         elif self.action in ['retrieve', 'list', 'join']:
             return [permissions.IsAuthenticated()]
@@ -247,6 +252,106 @@ class ClassRoomsController(viewsets.GenericViewSet,
             return Response({'error': 'Invalid class code'}, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
+        operation_summary="Lists all nonleaders of a class",
+        operation_description="GET /classes/{id}/nonleaders",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['GET'])
+    def nonleaders(self, request, *args, **kwargs):
+        try:
+            class_id = kwargs['pk']
+
+            class_members = ClassMember.objects.filter(
+                class_id=class_id, 
+                role=ClassMember.STUDENT
+            ).annotate(
+                teammember_status=Subquery(
+                    TeamMember.objects.filter(
+                        class_member_id_id=OuterRef('pk'),  # Assuming ForeignKey from ClassMember to TeamMember is named 'classmember'
+                        status=TeamMember.PENDING
+                    ).values('status')[:1]
+                )
+            ).filter(
+                Q(teammember__isnull=True) | Q(teammember_status=TeamMember.PENDING)
+            )
+
+            none_leaders = []
+            for class_member in class_members:
+                user = UserSerializer(class_member.user_id).data
+                member = {
+                    'class_member_id': class_member.id,
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name'),
+                    'teamember_status': class_member.teammember_status
+                }
+                none_leaders.append(member)
+            return Response(none_leaders, status=status.HTTP_200_OK)
+        except ClassRoom.DoesNotExist:
+            return Response({'details': 'Classroom not found'}, status=status.HTTP_404_NOT_FOUND)
+        except ClassMember.DoesNotExist:
+            return Response({'details': 'Class member not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return Response({'details': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @swagger_auto_schema(
+        operation_summary="Lists all leaders of a class",
+        operation_description="GET /classes/{id}/leaders",
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=True, methods=['GET'])   
+    def leaders(self, request, *args, **kwargs):
+        try:
+            class_id = kwargs['pk']
+
+            class_members = ClassMember.objects.filter(
+                class_id=class_id, 
+                role=ClassMember.STUDENT
+            ).annotate(
+                teammember_status=Subquery(
+                    TeamMember.objects.filter(
+                        class_member_id_id=OuterRef('pk'),  # Assuming ForeignKey from ClassMember to TeamMember is named 'classmember'
+                        role=TeamMember.LEADER,
+                        status=TeamMember.ACCEPTED
+                    ).values('status')[:1]
+                )
+            ).filter(
+                Q(teammember_status=TeamMember.ACCEPTED)
+            )
+
+            leaders = []
+            for class_member in class_members:
+                user = UserSerializer(class_member.user_id).data
+                member = {
+                    'class_member_id': class_member.id,
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name'),
+                    'teamember_status': class_member.teammember_status
+                }
+                leaders.append(member)
+            return Response(leaders, status=status.HTTP_200_OK)
+        except ClassRoom.DoesNotExist:
+            return Response({'details': 'Classroom not found'}, status=status.HTTP_404_NOT_FOUND)
+        except ClassMember.DoesNotExist:
+            return Response({'details': 'Class member not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return Response({'details': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    @swagger_auto_schema(
         operation_summary="Lists all peer evals of a class",
         operation_description="GET /classes/{id}/evals",
         responses={
@@ -272,3 +377,5 @@ class ClassRoomsController(viewsets.GenericViewSet,
             return Response({'details': 'Peer eval not found'}, status=status.HTTP_404_NOT_FOUND)
         except:
             return Response({'details': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    

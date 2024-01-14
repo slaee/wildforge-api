@@ -8,8 +8,10 @@ from rest_framework.response import Response
 from api.custom_permissions import IsTeamLeaderOrTeacher
 
 from api.models import User
+from api.models import Team
 from api.models import TeamMember
 from api.models import ClassMember
+from api.models import ClassRoom
 
 from api.serializers import TeamMemberSerializer
 from api.serializers import NoneSerializer
@@ -131,13 +133,34 @@ class TeamMembersController(viewsets.GenericViewSet,
     @action(detail=True, methods=['PUT'])
     def accept(self, request, *args, **kwargs):
         try:
-            pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
-            pending_team_member.status = TeamMember.ACCEPTED
-            pending_team_member.save()
+            classroom = ClassRoom.objects.get(id=kwargs['class_pk'])
+            team = Team.objects.get(id=kwargs['team_pk'])
 
-            return Response(TeamMemberSerializer(pending_team_member).data, status=status.HTTP_200_OK)
+            # count team members if it is full
+            team_members_count = TeamMember.objects.filter(team_id=kwargs['team_pk'], status=TeamMember.ACCEPTED).count()
+            if (team_members_count + 1) == classroom.max_teams_members:
+                pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
+                pending_team_member.status = TeamMember.ACCEPTED
+                pending_team_member.save()
+
+                team.status = Team.CLOSE
+                team.save()
+
+                return Response(TeamMemberSerializer(pending_team_member).data, status=status.HTTP_200_OK)
+            elif team_members_count < classroom.max_teams_members:
+                pending_team_member = TeamMember.objects.get(id=kwargs['pk'])
+                pending_team_member.status = TeamMember.ACCEPTED
+                pending_team_member.save()
+
+                return Response(TeamMemberSerializer(pending_team_member).data, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Team is full'}, status=status.HTTP_400_BAD_REQUEST)
+        except Team.DoesNotExist:
+            return Response({'error': 'Team does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except ClassRoom.DoesNotExist:
+            return Response({'error': 'Classroom does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except TeamMember.DoesNotExist:
-            return Response({'error': 'Team Member does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Team Member does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except:
             return Response({'error': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
