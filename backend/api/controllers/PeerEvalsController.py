@@ -16,6 +16,7 @@ from api.serializers import PeerEvalSerializer
 from api.serializers import AssignPeerEvalSerializer
 from api.serializers import ClassRoomPESerializer
 from api.serializers import ClassRoomPETakerSerializer
+from api.serializers import NoneSerializer
 
 class PeerEvalsController (viewsets.GenericViewSet,
                         mixins.ListModelMixin, 
@@ -190,8 +191,6 @@ class PeerEvalsController (viewsets.GenericViewSet,
             classroom_pe_takers_serializer = ClassRoomPETakerSerializer(classroom_pe_takers, many=True).data
 
             peerEvals = []
-
-
             for classroom_pe in classroom_pes_serializer:
                 peerEval = PeerEval.objects.get(id=classroom_pe['peer_eval_id'])
                 peerEvalSerializer = PeerEvalSerializer(peerEval).data
@@ -201,9 +200,44 @@ class PeerEvalsController (viewsets.GenericViewSet,
                 else:
                     peerEvalSerializer['status'] = ClassRoomPETaker.PENDING
 
+                peerEvalSerializer['class_pe_id'] = classroom_pe['id']
                 peerEvals.append(peerEvalSerializer)
              
             return Response(peerEvals, status=status.HTTP_200_OK)
+        except ClassRoom.DoesNotExist:
+            return Response({'detail': 'Class does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return Response({'detail': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @swagger_auto_schema(
+        operation_summary="Submits a peer eval",
+        operation_description="POST /evals/assigned/{class_pe_id}/classmember/{cm_id}/submit",
+        request_body=NoneSerializer,
+        responses={
+            status.HTTP_200_OK: openapi.Response('OK'),
+            status.HTTP_404_NOT_FOUND: openapi.Response('Not Found'),
+            status.HTTP_400_BAD_REQUEST: openapi.Response('Bad Request'),
+            status.HTTP_401_UNAUTHORIZED: openapi.Response('Unauthorized'),
+            status.HTTP_403_FORBIDDEN: openapi.Response('Forbidden'),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: openapi.Response('Internal Server Error'),
+        }
+    )
+    @action(detail=False, methods=['POST'], url_path='assigned/(?P<class_pe_id>[^/.]+)/classmember/(?P<cm_id>[^/.]+)/submit')
+    def submit(self, request, class_pe_id, cm_id, *args, **kwargs):
+        try:
+            classroom_pe = ClassRoomPE.objects.get(id=class_pe_id)
+            class_member = ClassMember.objects.get(id=cm_id)
+
+            classroom_pe_taker = ClassRoomPETaker.objects.create(
+                class_member_id=class_member,
+                class_room_pe_id=classroom_pe,
+                status=ClassRoomPETaker.COMPLETED
+            )
+
+            classroom_pe_taker.save()
+
+            return Response({'detail': 'Submitted peer eval'}, status=status.HTTP_200_OK)
         except ClassRoom.DoesNotExist:
             return Response({'detail': 'Class does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
