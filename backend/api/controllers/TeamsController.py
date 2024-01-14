@@ -286,21 +286,3 @@ class TeamsController(viewsets.GenericViewSet,
             return Response({"error": "Team does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except:
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-    
-
-    
-
-    
-
-    
-
-
-
-
-
-
-
-
-    
